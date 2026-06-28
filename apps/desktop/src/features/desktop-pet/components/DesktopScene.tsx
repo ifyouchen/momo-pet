@@ -1,0 +1,56 @@
+import type { DefaultPetModel } from '../hooks/use-default-pet';
+import { ActionDock } from './ActionDock';
+import { MomoPetAvatar } from './MomoPetAvatar';
+import { SpeechBubble } from './SpeechBubble';
+import { StateDeltaFloat } from './StateDeltaFloat';
+import { StatePanel } from './StatePanel';
+
+interface DesktopSceneProps {
+  /** 默认宠物主页所需的完整视图模型，集中承接 API 状态和交互回调。 */
+  readonly model: DefaultPetModel;
+}
+
+/**
+ * 渲染 Momo Pet 的桌面场景主页。
+ *
+ * 前置条件：model 由 useDefaultPet 提供。后置条件：用户可以查看状态并触发照顾动作。
+ * @throws 本组件不抛出异常。
+ */
+export function DesktopScene({ model }: DesktopSceneProps) {
+  const petName = model.pet?.name ?? 'Momo Pet';
+  const mood = model.feedback.tone === 'error' ? 'worried' : model.activeAction ? 'happy' : 'idle';
+
+  return (
+    <main className="desktop-shell" aria-label="Project Momo desktop window">
+      <section className="scene" aria-label="Momo Pet desktop scene">
+        <header className="scene-header">
+          <div>
+            <p className="scene-kicker">Desktop Pet</p>
+            <h1>{petName}</h1>
+          </div>
+          <span className="status-pill">{model.statusText}</span>
+        </header>
+
+        <div className="scene-sky" aria-hidden="true">
+          <span className="cloud cloud-one" />
+          <span className="cloud cloud-two" />
+          <span className="sparkle sparkle-one" />
+          <span className="sparkle sparkle-two" />
+        </div>
+
+        <section className="pet-stage" aria-label="Momo Pet interaction stage">
+          <StateDeltaFloat deltas={model.stateDeltas} />
+          <MomoPetAvatar mood={mood} />
+          <SpeechBubble message={model.feedback.message} tone={model.feedback.tone} />
+        </section>
+
+        <StatePanel isLoading={model.isBootstrapping} state={model.state} />
+        <ActionDock
+          activeAction={model.activeAction}
+          canCare={model.canCare}
+          onCareAction={model.handleCareAction}
+        />
+      </section>
+    </main>
+  );
+}
