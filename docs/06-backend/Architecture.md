@@ -1,5 +1,15 @@
 # 08 Backend Architecture
 
+## 架构边界
+
+后端遵循 [Architecture-Principles.md](../00-project/Architecture-Principles.md)：
+
+```text
+Java 管大脑。
+```
+
+Spring Boot 负责 Pet DNA、Life Engine、Memory、AI Task、状态持久化、后台管理 API 和统一错误处理，不负责桌面窗口控制或宠物逐帧渲染。
+
 ## 技术栈
 
 - Spring Boot

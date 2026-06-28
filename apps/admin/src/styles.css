@@ -1,0 +1,114 @@
+:root {
+  font-family: Inter, 'Microsoft YaHei', system-ui, sans-serif;
+  color: #1f2937;
+  background: #f5f7fb;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 960px;
+  min-height: 100vh;
+}
+
+.admin-shell {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 220px 1fr;
+}
+
+.sidebar {
+  padding: 24px 18px;
+  border-right: 1px solid #dce3ef;
+  background: #ffffff;
+}
+
+.sidebar strong {
+  display: block;
+  margin-bottom: 28px;
+  font-size: 18px;
+}
+
+.sidebar nav {
+  display: grid;
+  gap: 8px;
+}
+
+.sidebar a {
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: #405066;
+  text-decoration: none;
+}
+
+.sidebar a:hover {
+  background: #eef4ff;
+  color: #1d4ed8;
+}
+
+.workspace {
+  padding: 28px;
+}
+
+.page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+
+.page-header h1 {
+  margin: 0 0 6px;
+  font-size: 28px;
+}
+
+.page-header p {
+  margin: 0;
+  color: #64748b;
+}
+
+.environment {
+  border: 1px solid #bfd0ea;
+  border-radius: 999px;
+  padding: 6px 12px;
+  color: #1d4ed8;
+  background: #eef4ff;
+  font-size: 13px;
+}
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.metric-card {
+  min-height: 148px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  border: 1px solid #dce3ef;
+  border-radius: 8px;
+  padding: 18px;
+  background: #ffffff;
+}
+
+.metric-card svg {
+  color: #1d4ed8;
+}
+
+.metric-card span {
+  color: #64748b;
+  font-size: 14px;
+}
+
+.metric-card strong {
+  font-size: 32px;
+}
+
+.metric-card small {
+  color: #8291a7;
+}

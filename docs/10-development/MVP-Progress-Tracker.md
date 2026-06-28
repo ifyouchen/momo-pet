@@ -16,7 +16,7 @@
 | --- | --- | --- | --- |
 | Sprint 0 | 工程骨架 | Not Started | No |
 | Sprint 1 | 默认宠物闭环 | Not Started | No |
-| Sprint 2 | 桌面端运行时 | Not Started | No |
+| Sprint 2 | Windows/macOS 桌面端运行时 | Not Started | No |
 | Sprint 3 | 宠物交互模式 | Not Started | No |
 | Sprint 4 | Pet Studio | Not Started | No |
 | Sprint 5 | AI Pet DNA 任务 | Not Started | No |
@@ -38,7 +38,7 @@
 | 后端工程初始化 | Not Started | 无 | 健康检查接口可访问 |
 | 桌面端工程初始化 | Not Started | 无 | Tauri 窗口可打开 |
 | Admin 工程初始化 | Not Started | 无 | Admin 页面可打开 |
-| Momo Cat 资源目录 | Not Started | 无 | `assets/momo-cat` 存在 |
+| Momo Pet 资源目录 | Not Started | 无 | `assets/sprites/momo-pet` 存在 |
 | README 启动说明 | Not Started | 工程初始化 | 可以按 README 启动 |
 
 ## Sprint 1：默认宠物闭环
@@ -53,15 +53,17 @@
 | 宠物主页静态 UI | Not Started | 桌面端工程 | 页面与 Figma 基本一致 |
 | 状态条绑定 | Not Started | API | 前端显示后端状态 |
 
-## Sprint 2：桌面端运行时
+## Sprint 2：Windows/macOS 桌面端运行时
 
 | 任务 | 状态 | 依赖 | 验收标准 |
 | --- | --- | --- | --- |
-| 透明窗口 | Not Started | Tauri | 窗口透明无边框 |
-| 置顶窗口 | Not Started | Tauri | 桌宠保持置顶 |
-| 拖动宠物 | Not Started | 透明窗口 | 可拖动 |
-| 位置缓存 | Not Started | 本地缓存 | 重启恢复位置 |
-| 显示/隐藏 | Not Started | 托盘或快捷入口 | 可隐藏并恢复 |
+| Windows 透明窗口 | Not Started | Tauri | Windows 窗口透明无边框 |
+| macOS 透明窗口 | Not Started | Tauri | macOS 窗口透明无边框 |
+| 基础置顶窗口 | Not Started | Tauri | Windows/macOS 普通桌面场景保持置顶 |
+| 拖动宠物 | Not Started | 透明窗口 | 两个平台可拖动 |
+| 位置缓存 | Not Started | 本地缓存 | 两个平台重启恢复位置 |
+| Windows 托盘 | Not Started | Tauri | 可显示、隐藏、退出 |
+| macOS 菜单栏 | Not Started | Tauri | 可显示、隐藏、退出 |
 
 ## Sprint 3：宠物交互模式
 
@@ -124,4 +126,5 @@
 | P0 用例回归 | Not Started | 所有 Sprint | P0 全通过 |
 | 错误文案整理 | Not Started | 功能完成 | 文案一致 |
 | 本地缓存稳定性 | Not Started | Sprint 2 | 重启不丢状态 |
-| 打包验证 | Not Started | 桌面端 | Windows 可安装或运行 |
+| Windows 打包验证 | Not Started | 桌面端 | Windows 可安装或运行 |
+| macOS 打包验证 | Not Started | 桌面端 | macOS 可安装或运行 |

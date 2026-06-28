@@ -6,6 +6,10 @@
 
 ## 编码前必须读取
 
+所有任务必须先读取：
+
+- `docs/00-project/Architecture-Principles.md`
+
 后端任务至少读取：
 
 - `docs/10-development/CodingSpec.md`
@@ -296,7 +300,11 @@ e.printStackTrace();
 ## 桌面端约束
 
 - Rust 负责系统能力，React 负责 UI。
+- React 画宠物，Rust 控窗口，Java 管大脑。
 - React 不直接调用 Windows API。
+- React 不直接调用 macOS AppKit API。
+- Rust/Tauri 不实现宠物养成业务规则。
+- Java/Spring Boot 不实现桌面窗口控制。
 - Tauri command 输入输出必须有明确类型。
 - 系统能力失败必须返回可识别错误码。
 - 窗口位置、可见性、减少动画等设置必须本地持久化。
@@ -345,4 +353,3 @@ e.printStackTrace();
 - 是否有 `console.log` 或 `printStackTrace`。
 - 是否有 loading、error、empty state。
 - 是否补充了必要测试。
-

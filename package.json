@@ -1,0 +1,28 @@
+{
+  "name": "momo-pet",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.33.2",
+  "scripts": {
+    "dev:desktop": "pnpm --filter @momo/desktop dev",
+    "dev:admin": "pnpm --filter @momo/admin dev",
+    "build:desktop": "pnpm --filter @momo/desktop build",
+    "build:admin": "pnpm --filter @momo/admin build",
+    "build:packages": "pnpm --filter @momo/shared --filter @momo/pet-runtime --filter @momo/animation-engine --filter @momo/ui build",
+    "lint": "pnpm --recursive lint",
+    "format": "prettier --write README.md package.json pnpm-workspace.yaml .prettierrc.json eslint.config.js \"apps/**/*.{json,css,ts,tsx,html}\" \"packages/**/*.{json,css,ts,tsx,md}\" \"native/**/*.md\" \"ai/**/*.md\" \"assets/**/*.md\"",
+    "format:check": "prettier --check README.md package.json pnpm-workspace.yaml .prettierrc.json eslint.config.js \"apps/**/*.{json,css,ts,tsx,html}\" \"packages/**/*.{json,css,ts,tsx,md}\" \"native/**/*.md\" \"ai/**/*.md\" \"assets/**/*.md\""
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.39.4",
+    "@typescript-eslint/eslint-plugin": "^8.35.1",
+    "@typescript-eslint/parser": "^8.35.1",
+    "eslint": "^9.29.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "globals": "^15.15.0",
+    "prettier": "^3.6.0",
+    "typescript-eslint": "^8.35.1"
+  }
+}

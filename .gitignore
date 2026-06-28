@@ -1,0 +1,14 @@
+.DS_Store
+Thumbs.db
+
+node_modules/
+dist/
+target/
+*.tsbuildinfo
+apps/*/node_modules/
+packages/*/node_modules/
+
+.env
+.env.local
+
+*.log
