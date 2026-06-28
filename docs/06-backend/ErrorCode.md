@@ -1,0 +1,38 @@
+# Error Code
+
+## 通用错误
+
+- VALIDATION_FAILED：参数校验失败。
+- UNAUTHORIZED：未登录。
+- FORBIDDEN：无权限。
+- INTERNAL_ERROR：系统异常。
+
+## 宠物错误
+
+- PET_NOT_FOUND：宠物不存在。
+- PET_DNA_INVALID：Pet DNA 不合法。
+- PET_PHOTO_REQUIRED：缺少宠物照片。
+- PET_PRIMARY_PHOTO_REQUIRED：缺少 Pet DNA 生成所需的主图。
+- PET_REFERENCE_PHOTO_LIMIT_EXCEEDED：参考图数量超过 MVP 限制。
+- PET_PHOTO_OWNER_MISMATCH：图片资源不属于当前宠物。
+- PET_PHOTO_MISMATCH_WARNING：AI 判断多张图片可能不是同一只宠物。
+- PET_STATE_CONFLICT：状态冲突。
+
+## AI 错误
+
+- AI_GENERATION_FAILED：AI 生成失败。
+- AI_TASK_NOT_FOUND：AI 任务不存在。
+- AI_TASK_TIMEOUT：AI 任务超时。
+
+## 资源错误
+
+- ASSET_UPLOAD_FAILED：资源上传失败。
+- ASSET_TYPE_UNSUPPORTED：资源类型不支持。
+- ASSET_TOO_LARGE：资源过大。
+- ASSET_BATCH_TOO_LARGE：单次创建流程图片总大小超过限制。
+
+## 照顾行为错误
+
+- CARE_ACTION_NOT_ALLOWED：当前状态不允许该照顾行为。
+- PET_ALREADY_FULL：宠物已经吃饱。
+- CLEAN_EVENT_NOT_FOUND：没有可清理事件。
