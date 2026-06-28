@@ -1,41 +1,51 @@
 import { useState } from 'react';
-
-type MomoMood = 'idle' | 'happy' | 'worried';
-
-const DEFAULT_CAT_ASSET = '/assets/sprites/momo-pet/default-cat-idle.png';
+import { resolveSpriteAction } from '../assets/momo-pet-sprite';
+import type { PetVisualAction } from '../types';
 
 interface MomoPetAvatarProps {
-  /** 当前表情状态，来自用户操作反馈，不承载领域业务判断。 */
-  readonly mood: MomoMood;
+  /** 当前视觉动作，来自运行时反馈，不承载领域业务判断。 */
+  readonly action: PetVisualAction;
 }
 
 /**
  * 默认 Momo Pet 视觉规范组件。
  *
- * 前置条件：mood 为受控枚举。后置条件：优先渲染非 Q 版橘白长毛猫资产。
+ * 前置条件：action 为 sprite manifest 支持的动作。后置条件：优先渲染透明 PNG 动作帧。
  * @throws 本组件不抛出异常。
  */
-export function MomoPetAvatar({ mood }: MomoPetAvatarProps) {
-  const [hasAssetError, setHasAssetError] = useState(false);
+export function MomoPetAvatar({ action }: MomoPetAvatarProps) {
+  const [failedActions, setFailedActions] = useState<ReadonlySet<PetVisualAction>>(new Set());
+  const spriteAction = resolveSpriteAction(action, failedActions);
 
   return (
-    <div className={`momo-pet momo-pet-${mood}`} aria-label="Default Momo Pet">
-      {hasAssetError ? (
-        <FallbackPetAvatar />
-      ) : (
+    <div className={`momo-pet momo-pet-${action}`} aria-label="Default Momo Pet">
+      {spriteAction ? (
         <>
           <img
             className="momo-pet-image"
-            src={DEFAULT_CAT_ASSET}
+            src={spriteAction.definition.src}
             alt="Momo Pet 默认橘白长毛猫"
             draggable={false}
-            onError={() => setHasAssetError(true)}
+            onError={() =>
+              setFailedActions((current) => addFailedAction(current, spriteAction.action))
+            }
           />
           <span className="pet-shadow pet-shadow-image" />
         </>
+      ) : (
+        <FallbackPetAvatar />
       )}
     </div>
   );
+}
+
+function addFailedAction(
+  current: ReadonlySet<PetVisualAction>,
+  action: PetVisualAction,
+): ReadonlySet<PetVisualAction> {
+  const next = new Set(current);
+  next.add(action);
+  return next;
 }
 
 /**

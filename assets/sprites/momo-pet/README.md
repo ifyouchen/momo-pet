@@ -11,7 +11,8 @@ The default visual is a full-body orange-and-white long-haired tabby cat. It mus
 ## Asset Files
 
 - `default-cat-reference.png`: full turnaround and pose reference sheet.
-- `default-cat-idle.png`: MVP desktop idle image cropped from the front view.
+- `manifest.json`: runtime sprite manifest.
+- `frames/*/*.png`: transparent PNG frames used by the desktop runtime.
 
 ## Visual Rules
 
@@ -35,4 +36,17 @@ The default visual is a full-body orange-and-white long-haired tabby cat. It mus
 
 ## Runtime Fallback
 
-The desktop frontend loads `default-cat-idle.png` first. If the image fails to load, it falls back to the CSS-rendered temporary pet so the MVP page never goes blank.
+The desktop frontend resolves assets through `manifest.json`.
+
+Fallback order:
+
+1. Requested action.
+2. Action `fallbackAction`.
+3. `idle`.
+4. CSS-rendered temporary pet.
+
+The reference sheet is never used directly in the runtime because it has a background and multiple poses in one image.
+
+## Adding Actions
+
+New runtime actions must be added to `manifest.json` before code references them. Resource paths must not be scattered as one-off hardcoded strings in UI components.

@@ -18,7 +18,6 @@ interface DesktopSceneProps {
  */
 export function DesktopScene({ model }: DesktopSceneProps) {
   const petName = model.pet?.name ?? 'Momo Pet';
-  const mood = model.feedback.tone === 'error' ? 'worried' : model.activeAction ? 'happy' : 'idle';
 
   return (
     <main className="desktop-shell" aria-label="Project Momo desktop window">
@@ -40,7 +39,7 @@ export function DesktopScene({ model }: DesktopSceneProps) {
 
         <section className="pet-stage" aria-label="Momo Pet interaction stage">
           <StateDeltaFloat deltas={model.stateDeltas} />
-          <MomoPetAvatar mood={mood} />
+          <MomoPetAvatar action={model.visualAction} />
           <SpeechBubble message={model.feedback.message} tone={model.feedback.tone} />
         </section>
 

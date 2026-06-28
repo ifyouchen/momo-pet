@@ -201,6 +201,18 @@ button {
   user-select: none;
 }
 
+.momo-pet-eat,
+.momo-pet-grooming,
+.momo-pet-lying,
+.momo-pet-sleep {
+  width: 360px;
+}
+
+.momo-pet-happy,
+.momo-pet-low-head {
+  width: 280px;
+}
+
 .momo-pet-fallback {
   width: 222px;
   height: 194px;
@@ -638,6 +650,13 @@ button {
   .momo-pet {
     width: 260px;
     height: 226px;
+  }
+
+  .momo-pet-eat,
+  .momo-pet-grooming,
+  .momo-pet-lying,
+  .momo-pet-sleep {
+    width: 300px;
   }
 
   .state-panel {

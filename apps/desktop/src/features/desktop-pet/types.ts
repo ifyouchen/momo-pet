@@ -4,6 +4,12 @@
 export type CareAction = 'feed' | 'touch' | 'clean';
 
 /**
+ * 默认宠物运行时视觉动作，和 sprite manifest 中的 action 保持一致。
+ */
+export type PetVisualAction =
+  'idle' | 'happy' | 'eat' | 'sleep' | 'low-head' | 'lying' | 'grooming';
+
+/**
  * 用户反馈气泡语气，用于统一成功、错误和默认提示的视觉状态。
  */
 export type FeedbackTone = 'idle' | 'success' | 'error';

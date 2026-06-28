@@ -1,7 +1,7 @@
 import type { PetProfile, PetState } from '@momo/shared';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cleanPet, createPet, feedPet, getPet, getPetState, touchPet } from '../api/pet-api';
-import type { CareAction, FeedbackTone, StateDelta } from '../types';
+import type { CareAction, FeedbackTone, PetVisualAction, StateDelta } from '../types';
 
 const LOCAL_PET_ID_KEY = 'momo.defaultPetId';
 const DEFAULT_CLEAN_EVENT_ID = 'default-clean-event';
@@ -18,6 +18,7 @@ export interface DefaultPetModel {
   readonly activeAction: CareAction | null;
   readonly feedback: ActionFeedback;
   readonly stateDeltas: readonly StateDelta[];
+  readonly visualAction: PetVisualAction;
   readonly statusText: string;
   readonly canCare: boolean;
   readonly handleCareAction: (action: CareAction) => Promise<void>;
@@ -35,10 +36,12 @@ export function useDefaultPet(): DefaultPetModel {
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [activeAction, setActiveAction] = useState<CareAction | null>(null);
   const [stateDeltas, setStateDeltas] = useState<readonly StateDelta[]>([]);
+  const [visualAction, setVisualAction] = useState<PetVisualAction>('idle');
   const [feedback, setFeedback] = useState<ActionFeedback>({
     tone: 'idle',
     message: '今天也陪你一起开工。',
   });
+  const visualTimersRef = useRef<readonly number[]>([]);
 
   const canCare = Boolean(pet) && !isBootstrapping && activeAction === null;
   const statusText = useMemo(() => {
@@ -47,6 +50,30 @@ export function useDefaultPet(): DefaultPetModel {
     }
     return state ? `Lv.${state.level}` : 'Offline';
   }, [isBootstrapping, state]);
+
+  const clearVisualTimers = useCallback(() => {
+    visualTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+    visualTimersRef.current = [];
+  }, []);
+
+  const resetVisualAction = useCallback(() => {
+    clearVisualTimers();
+    setVisualAction('idle');
+  }, [clearVisualTimers]);
+
+  const scheduleVisualAction = useCallback(
+    (action: CareAction) => {
+      clearVisualTimers();
+      setVisualAction(getPrimaryVisualAction(action));
+      const secondaryTimer = window.setTimeout(
+        () => setVisualAction(getSecondaryVisualAction(action)),
+        900,
+      );
+      const idleTimer = window.setTimeout(() => setVisualAction('idle'), 1800);
+      visualTimersRef.current = [secondaryTimer, idleTimer];
+    },
+    [clearVisualTimers],
+  );
 
   const bootstrapDefaultPet = useCallback(async () => {
     setIsBootstrapping(true);
@@ -78,13 +105,15 @@ export function useDefaultPet(): DefaultPetModel {
           return nextState;
         });
         setFeedback({ tone: 'success', message: getSuccessMessage(action) });
+        scheduleVisualAction(action);
       } catch (error) {
+        resetVisualAction();
         setFeedback({ tone: 'error', message: getErrorMessage(error) });
       } finally {
         setActiveAction(null);
       }
     },
-    [activeAction, pet],
+    [activeAction, pet, resetVisualAction, scheduleVisualAction],
   );
 
   useEffect(() => {
@@ -99,6 +128,8 @@ export function useDefaultPet(): DefaultPetModel {
     return () => window.clearTimeout(timeoutId);
   }, [stateDeltas]);
 
+  useEffect(() => () => clearVisualTimers(), [clearVisualTimers]);
+
   return {
     pet,
     state,
@@ -106,6 +137,7 @@ export function useDefaultPet(): DefaultPetModel {
     activeAction,
     feedback,
     stateDeltas,
+    visualAction,
     statusText,
     canCare,
     handleCareAction,
@@ -163,4 +195,12 @@ function getSuccessMessage(action: CareAction): string {
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : '连接失败，请确认后端已启动。';
+}
+
+function getPrimaryVisualAction(action: CareAction): PetVisualAction {
+  return action === 'feed' ? 'eat' : 'happy';
+}
+
+function getSecondaryVisualAction(action: CareAction): PetVisualAction {
+  return action === 'feed' ? 'happy' : 'idle';
 }

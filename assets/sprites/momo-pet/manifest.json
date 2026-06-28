@@ -1,0 +1,57 @@
+{
+  "spriteCode": "momo-pet-default-cat",
+  "species": "CAT",
+  "style": "orange-white-longhair-tabby",
+  "defaultAction": "idle",
+  "actions": {
+    "idle": {
+      "src": "/assets/sprites/momo-pet/frames/idle/default-cat-idle.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": true,
+      "fallbackAction": null
+    },
+    "happy": {
+      "src": "/assets/sprites/momo-pet/frames/happy/default-cat-happy.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": false,
+      "fallbackAction": "idle"
+    },
+    "eat": {
+      "src": "/assets/sprites/momo-pet/frames/eat/default-cat-eat.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": false,
+      "fallbackAction": "happy"
+    },
+    "sleep": {
+      "src": "/assets/sprites/momo-pet/frames/sleep/default-cat-sleep.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": true,
+      "fallbackAction": "idle"
+    },
+    "low-head": {
+      "src": "/assets/sprites/momo-pet/frames/low-head/default-cat-low-head.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": false,
+      "fallbackAction": "idle"
+    },
+    "lying": {
+      "src": "/assets/sprites/momo-pet/frames/lying/default-cat-lying.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": true,
+      "fallbackAction": "idle"
+    },
+    "grooming": {
+      "src": "/assets/sprites/momo-pet/frames/grooming/default-cat-grooming.png",
+      "frameCount": 1,
+      "fps": 1,
+      "loop": false,
+      "fallbackAction": "idle"
+    }
+  }
+}
