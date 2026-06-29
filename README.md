@@ -44,10 +44,10 @@ Docs own decisions.
 
 ## Requirements
 
-- Java 8+ for the current Spring Boot 2.7 backend skeleton.
+- Java 21 for the Spring Boot 3.3 backend.
 - Maven 3.9+.
 - Node.js 24+.
-- pnpm 10+.
+- pnpm 11+.
 - Rust and Cargo are required before running the Tauri shell on Windows or macOS.
 - macOS packaging later requires Apple signing and notarization setup.
 
@@ -61,7 +61,7 @@ pnpm install
 
 ```bash
 cd apps/backend
-mvn spring-boot:run
+JAVA_HOME=$(/usr/libexec/java_home -v 21) mvn spring-boot:run
 ```
 
 Health check:
@@ -98,7 +98,7 @@ Run the Tauri shell after Rust is installed:
 pnpm --filter @momo/desktop tauri:dev
 ```
 
-The Tauri shell is expected to support Windows tray behavior and macOS menu bar behavior. Platform-specific runtime behavior is tracked in `docs/05-desktop-runtime/Platform-Support.md`.
+The Tauri shell owns the transparent pet window, always-on-top behavior, dragging, position restore, tray/menu recovery actions, and the full home window.
 
 ## Admin
 
@@ -114,5 +114,7 @@ pnpm format:check
 pnpm build:desktop
 pnpm build:admin
 pnpm build:packages
-cd apps/backend && mvn test
+cd apps/backend && JAVA_HOME=$(/usr/libexec/java_home -v 21) mvn test
 ```
+
+Current verified baseline: frontend lint/build/format checks pass, and backend tests pass on JDK 21.

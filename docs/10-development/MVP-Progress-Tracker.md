@@ -14,9 +14,9 @@
 
 | Sprint | 目标 | 状态 | 验收人确认 |
 | --- | --- | --- | --- |
-| Sprint 0 | 工程骨架 | Not Started | No |
-| Sprint 1 | 默认宠物闭环 | Not Started | No |
-| Sprint 2 | Windows/macOS 桌面端运行时 | Not Started | No |
+| Sprint 0 | 工程骨架 | Review | No |
+| Sprint 1 | 默认宠物闭环 | Review | No |
+| Sprint 2 | Windows/macOS 桌面端运行时 | In Progress | No |
 | Sprint 3 | 宠物交互模式 | Not Started | No |
 | Sprint 4 | Pet Studio | Not Started | No |
 | Sprint 5 | AI Pet DNA 任务 | Not Started | No |
@@ -29,41 +29,42 @@
 - Sprint 0 到 Sprint 6 是用户侧 MVP 主闭环。
 - Sprint 7 是内部后台支撑，不得影响用户侧主闭环交付。
 - Sprint 3 的交互模式只服务于喂食、抚摸、铲屎三个既有 MVP 功能，不新增玩具、追逐、宠物交友等范围。
+- 当前质量基线：`pnpm lint`、`pnpm format:check`、`pnpm build:packages`、`pnpm build:desktop`、`pnpm build:admin` 通过；后端在 JDK 21 下 `mvn test` 通过。
 
 ## Sprint 0：工程骨架
 
 | 任务 | 状态 | 依赖 | 验收标准 |
 | --- | --- | --- | --- |
-| 创建 monorepo 目录 | Not Started | 无 | `apps/backend`、`apps/desktop`、`apps/admin` 存在 |
-| 后端工程初始化 | Not Started | 无 | 健康检查接口可访问 |
-| 桌面端工程初始化 | Not Started | 无 | Tauri 窗口可打开 |
-| Admin 工程初始化 | Not Started | 无 | Admin 页面可打开 |
-| Momo Pet 资源目录 | Not Started | 无 | `assets/sprites/momo-pet` 存在 |
-| README 启动说明 | Not Started | 工程初始化 | 可以按 README 启动 |
+| 创建 monorepo 目录 | Review | 无 | `apps/backend`、`apps/desktop`、`apps/admin` 存在 |
+| 后端工程初始化 | Review | 无 | 健康检查接口可访问 |
+| 桌面端工程初始化 | Review | 无 | Tauri 窗口可打开 |
+| Admin 工程初始化 | Review | 无 | Admin 页面可打开 |
+| Momo Pet 资源目录 | Review | 无 | `assets/sprites/momo-pet` 存在 |
+| README 启动说明 | Review | 工程初始化 | 可以按 README 启动 |
 
 ## Sprint 1：默认宠物闭环
 
 | 任务 | 状态 | 依赖 | 验收标准 |
 | --- | --- | --- | --- |
-| Pet 聚合实现 | Not Started | 后端工程 | 领域测试通过 |
-| PetState 聚合实现 | Not Started | 后端工程 | 状态初始化正确 |
-| Feed API | Not Started | PetState | 饱食度变化 |
-| Touch API | Not Started | PetState | 亲密度变化 |
-| Clean API | Not Started | PetState | 清洁度变化 |
-| 宠物主页静态 UI | Not Started | 桌面端工程 | 页面与 Figma 基本一致 |
-| 状态条绑定 | Not Started | API | 前端显示后端状态 |
+| Pet 聚合实现 | Review | 后端工程 | 领域测试通过 |
+| PetState 聚合实现 | Review | 后端工程 | 状态初始化正确 |
+| Feed API | Review | PetState | 饱食度变化 |
+| Touch API | Review | PetState | 亲密度变化 |
+| Clean API | Review | PetState | 清洁度变化 |
+| 宠物主页静态 UI | Review | 桌面端工程 | 页面与 Figma 基本一致 |
+| 状态条绑定 | Review | API | 前端显示后端状态 |
 
 ## Sprint 2：Windows/macOS 桌面端运行时
 
 | 任务 | 状态 | 依赖 | 验收标准 |
 | --- | --- | --- | --- |
-| Windows 透明窗口 | Not Started | Tauri | Windows 窗口透明无边框 |
-| macOS 透明窗口 | Not Started | Tauri | macOS 窗口透明无边框 |
-| 基础置顶窗口 | Not Started | Tauri | Windows/macOS 普通桌面场景保持置顶 |
-| 拖动宠物 | Not Started | 透明窗口 | 两个平台可拖动 |
-| 位置缓存 | Not Started | 本地缓存 | 两个平台重启恢复位置 |
-| Windows 托盘 | Not Started | Tauri | 可显示、隐藏、退出 |
-| macOS 菜单栏 | Not Started | Tauri | 可显示、隐藏、退出 |
+| Windows 透明窗口 | In Progress | Tauri | Windows 窗口透明无边框 |
+| macOS 透明窗口 | In Progress | Tauri | macOS 窗口透明无边框 |
+| 基础置顶窗口 | In Progress | Tauri | Windows/macOS 普通桌面场景保持置顶 |
+| 拖动宠物 | In Progress | 透明窗口 | 两个平台可拖动 |
+| 位置缓存 | In Progress | 本地缓存 | 两个平台重启恢复位置 |
+| Windows 托盘 | In Progress | Tauri | 可显示、隐藏、退出 |
+| macOS 菜单栏 | In Progress | Tauri | 可显示、隐藏、退出 |
 
 ## Sprint 3：宠物交互模式
 

@@ -174,7 +174,6 @@ fn show_or_create_home_window(app: &AppHandle) -> Result<(), RuntimeError> {
     .min_inner_size(720.0, 520.0)
     .resizable(true)
     .decorations(true)
-    .transparent(false)
     .visible(true)
     .build()?;
     Ok(())
