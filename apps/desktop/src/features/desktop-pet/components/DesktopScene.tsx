@@ -1,6 +1,7 @@
 import { useCallback, useState } from 'react';
 import type { CareAction } from '../types';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
+import { PetStudioView } from '../../pet-studio/components/PetStudioView';
 import { ActionDock } from './ActionDock';
 import { MomoPetAvatar } from './MomoPetAvatar';
 import { PetInteractionLayer } from './PetInteractionLayer';
@@ -23,6 +24,7 @@ interface DesktopSceneProps {
  */
 export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
   const petName = model.pet?.name ?? 'Momo Pet';
+  const [isPetStudioOpen, setIsPetStudioOpen] = useState(false);
   const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
   const [interactionHint, setInteractionHint] = useState<string | null>(null);
   const cancelInteractionMode = useCallback(() => {
@@ -40,42 +42,52 @@ export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
             {runtimeWarning}
           </div>
         ) : null}
-        <header className="scene-header">
-          <div>
-            <p className="scene-kicker">Desktop Pet</p>
-            <h1>{petName}</h1>
-          </div>
-          <span className="status-pill">{model.statusText}</span>
-        </header>
-
-        <div className="scene-sky" aria-hidden="true">
-          <span className="cloud cloud-one" />
-          <span className="cloud cloud-two" />
-          <span className="sparkle sparkle-one" />
-          <span className="sparkle sparkle-two" />
-        </div>
-
-        <section className="pet-stage" aria-label="Momo Pet interaction stage">
-          <StateDeltaFloat deltas={model.stateDeltas} />
-          <MomoPetAvatar action={model.visualAction} />
-          <SpeechBubble message={bubbleMessage} tone={bubbleTone} />
-          <PetInteractionLayer
-            mode={activeInteractionMode}
-            canCare={model.canCare}
-            isSubmitting={model.activeAction !== null}
-            onComplete={model.handleCareAction}
-            onCancel={cancelInteractionMode}
-            onHintChange={setInteractionHint}
+        {isPetStudioOpen ? (
+          <PetStudioView
+            onClose={() => setIsPetStudioOpen(false)}
+            onDone={() => setIsPetStudioOpen(false)}
           />
-        </section>
+        ) : (
+          <>
+            <header className="scene-header">
+              <div>
+                <p className="scene-kicker">Desktop Pet</p>
+                <h1>{petName}</h1>
+              </div>
+              <span className="status-pill">{model.statusText}</span>
+            </header>
 
-        <StatePanel isLoading={model.isBootstrapping} state={model.state} />
-        <ActionDock
-          activeAction={model.activeAction}
-          activeInteractionMode={activeInteractionMode}
-          canCare={model.canCare}
-          onSelectInteractionMode={setActiveInteractionMode}
-        />
+            <div className="scene-sky" aria-hidden="true">
+              <span className="cloud cloud-one" />
+              <span className="cloud cloud-two" />
+              <span className="sparkle sparkle-one" />
+              <span className="sparkle sparkle-two" />
+            </div>
+
+            <section className="pet-stage" aria-label="Momo Pet interaction stage">
+              <StateDeltaFloat deltas={model.stateDeltas} />
+              <MomoPetAvatar action={model.visualAction} />
+              <SpeechBubble message={bubbleMessage} tone={bubbleTone} />
+              <PetInteractionLayer
+                mode={activeInteractionMode}
+                canCare={model.canCare}
+                isSubmitting={model.activeAction !== null}
+                onComplete={model.handleCareAction}
+                onCancel={cancelInteractionMode}
+                onHintChange={setInteractionHint}
+              />
+            </section>
+
+            <StatePanel isLoading={model.isBootstrapping} state={model.state} />
+            <ActionDock
+              activeAction={model.activeAction}
+              activeInteractionMode={activeInteractionMode}
+              canCare={model.canCare}
+              onOpenPetStudio={() => setIsPetStudioOpen(true)}
+              onSelectInteractionMode={setActiveInteractionMode}
+            />
+          </>
+        )}
       </section>
     </main>
   );

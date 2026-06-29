@@ -767,6 +767,223 @@ button {
   color: #6d7a8d;
 }
 
+.pet-studio-shell {
+  min-height: 100%;
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  gap: 18px;
+  padding: 28px 32px 32px;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(255, 209, 102, 0.24), transparent 15rem),
+    radial-gradient(circle at 88% 20%, rgba(127, 200, 169, 0.18), transparent 13rem);
+}
+
+.pet-studio-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.pet-studio-header span,
+.pet-studio-panel-header span {
+  color: #789080;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.pet-studio-header h2,
+.pet-studio-panel-header h3 {
+  margin: 0;
+  color: #293241;
+}
+
+.pet-studio-header h2 {
+  font-size: 34px;
+  line-height: 1.05;
+}
+
+.pet-studio-header button,
+.photo-tile-footer button {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(58, 74, 92, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  color: #334155;
+  cursor: pointer;
+}
+
+.pet-studio-content {
+  display: grid;
+  grid-template-columns: minmax(240px, 0.86fr) minmax(320px, 1.14fr);
+  gap: 18px;
+  align-content: start;
+}
+
+.pet-studio-panel,
+.pet-studio-form,
+.pet-studio-ritual {
+  border: 1px solid rgba(58, 74, 92, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+  box-shadow: 0 18px 48px rgba(42, 53, 70, 0.1);
+}
+
+.pet-studio-panel,
+.pet-studio-form {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+}
+
+.pet-studio-panel-header {
+  display: grid;
+  gap: 3px;
+}
+
+.pet-studio-form label {
+  display: grid;
+  gap: 6px;
+  color: #526174;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.pet-studio-form input,
+.pet-studio-form select,
+.pet-studio-form textarea,
+.photo-tile-footer select {
+  width: 100%;
+  border: 1px solid rgba(58, 74, 92, 0.14);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #293241;
+  font: inherit;
+}
+
+.pet-studio-form textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.photo-upload-dropzone {
+  min-height: 154px;
+  display: grid;
+  place-items: center;
+  gap: 6px;
+  border: 2px dashed rgba(246, 168, 91, 0.46);
+  border-radius: 8px;
+  padding: 18px;
+  background: rgba(255, 247, 223, 0.42);
+  color: #526174;
+  cursor: pointer;
+  text-align: center;
+}
+
+.photo-upload-dropzone input {
+  display: none;
+}
+
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.photo-tile {
+  overflow: hidden;
+  border: 1px solid rgba(58, 74, 92, 0.12);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.74);
+}
+
+.photo-tile img {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  display: block;
+  object-fit: cover;
+}
+
+.photo-tile-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+}
+
+.photo-role-pill {
+  flex: 1;
+  border-radius: 999px;
+  padding: 7px 10px;
+  background: #fff7df;
+  color: #a76220;
+  font-size: 12px;
+  font-weight: 900;
+  text-align: center;
+}
+
+.pet-studio-error {
+  grid-column: 1 / -1;
+  border: 1px solid rgba(217, 94, 94, 0.24);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 247, 239, 0.88);
+  color: #9d3e34;
+  font-weight: 900;
+}
+
+.pet-studio-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.pet-studio-primary,
+.pet-studio-secondary {
+  border: 1px solid rgba(58, 74, 92, 0.14);
+  border-radius: 999px;
+  padding: 10px 16px;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.pet-studio-primary {
+  background: #7fc8a9;
+  color: #193c31;
+}
+
+.pet-studio-primary:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+}
+
+.pet-studio-secondary {
+  background: rgba(255, 255, 255, 0.72);
+  color: #526174;
+}
+
+.pet-studio-ritual {
+  min-height: 360px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 12px;
+  color: #526174;
+  text-align: center;
+}
+
+.pet-studio-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
 .pet-window-shell {
   width: 100vw;
   height: 100vh;
