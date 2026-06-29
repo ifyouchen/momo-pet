@@ -73,23 +73,6 @@ button {
   transform: translateX(-50%);
 }
 
-.runtime-mode-badge {
-  position: fixed;
-  left: 10px;
-  bottom: 10px;
-  z-index: 40;
-  border: 1px solid rgba(58, 74, 92, 0.18);
-  border-radius: 999px;
-  padding: 5px 9px;
-  background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 10px 24px rgba(42, 53, 70, 0.12);
-  color: #475569;
-  font-family: 'SFMono-Regular', Consolas, monospace;
-  font-size: 11px;
-  font-weight: 800;
-  pointer-events: none;
-}
-
 .scene::before,
 .scene::after {
   content: '';
@@ -230,43 +213,35 @@ button {
 }
 
 .interaction-panel {
-  width: min(300px, calc(100% - 48px));
+  width: auto;
+  min-width: 116px;
   position: absolute;
   left: 50%;
   top: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  justify-content: center;
+  gap: 8px;
   border: 1px solid rgba(58, 74, 92, 0.12);
-  border-radius: 8px;
-  padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 16px 36px rgba(42, 53, 70, 0.12);
+  border-radius: 999px;
+  padding: 6px 8px 6px 12px;
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 28px rgba(42, 53, 70, 0.1);
   color: #334155;
   transform: translateX(-50%);
   pointer-events: auto;
 }
 
-.interaction-panel div {
-  display: grid;
-  gap: 2px;
-}
-
 .interaction-panel strong {
-  font-size: 13px;
-  font-weight: 900;
-}
-
-.interaction-panel span {
-  color: #607088;
+  color: #64748b;
   font-size: 12px;
-  font-weight: 800;
+  font-weight: 900;
+  line-height: 1;
 }
 
 .interaction-panel button {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   display: grid;
   place-items: center;
   border: 1px solid rgba(58, 74, 92, 0.12);
@@ -292,7 +267,20 @@ button {
   pointer-events: none;
 }
 
+.interaction-hit-zone-feed {
+  width: 148px;
+  height: 110px;
+  top: 43%;
+  border-color: rgba(246, 168, 91, 0.62);
+  background: rgba(255, 247, 223, 0.38);
+}
+
 .interaction-hit-zone-touch {
+  width: 170px;
+  height: 126px;
+  top: 35%;
+  border-color: rgba(239, 141, 167, 0.56);
+  background: rgba(255, 235, 242, 0.3);
   cursor: grab;
   pointer-events: auto;
   touch-action: none;
@@ -316,6 +304,12 @@ button {
   border-radius: inherit;
   background: #ef8da7;
   transition: width 120ms ease;
+}
+
+.feed-target-label {
+  color: #d9782f;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .food-token,
@@ -786,11 +780,12 @@ button {
 .pet-window-drag-zone {
   width: 100%;
   height: 100%;
+  position: relative;
   display: grid;
   place-items: center;
   align-content: center;
   gap: 10px;
-  padding: 24px 18px 70px;
+  padding: 58px 18px 70px;
   cursor: grab;
   user-select: none;
 }
@@ -817,11 +812,21 @@ button {
 }
 
 .pet-window-shell .speech-bubble {
-  max-width: 310px;
-  padding: 10px 16px;
+  max-width: 250px;
+  position: absolute;
+  left: 50%;
+  top: 62px;
+  z-index: 12;
+  padding: 10px 14px;
   background: rgba(255, 255, 255, 0.9);
   backdrop-filter: blur(12px);
   font-size: 15px;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.pet-window-shell .speech-bubble::after {
+  left: 58%;
 }
 
 .pet-window-shell .state-delta-float {
@@ -855,15 +860,27 @@ button {
 }
 
 .pet-window-shell .interaction-panel {
-  width: min(286px, calc(100% - 38px));
+  min-width: 104px;
   top: 2px;
-  padding: 9px 10px;
+  padding: 6px 8px 6px 11px;
 }
 
 .pet-window-shell .interaction-hit-zone {
   width: 214px;
   height: 192px;
   top: 48%;
+}
+
+.pet-window-shell .interaction-hit-zone-feed {
+  width: 132px;
+  height: 96px;
+  top: 42%;
+}
+
+.pet-window-shell .interaction-hit-zone-touch {
+  width: 150px;
+  height: 110px;
+  top: 34%;
 }
 
 .pet-window-shell .food-token {

@@ -14,20 +14,8 @@ export function DesktopApp() {
   const windowMode = useWindowMode();
 
   if (windowMode.mode === 'pet-window') {
-    return (
-      <DesktopPetWindow
-        model={petModel}
-        runtimeWarning={windowMode.runtimeWarning}
-        windowMode={windowMode.mode}
-      />
-    );
+    return <DesktopPetWindow model={petModel} runtimeWarning={windowMode.runtimeWarning} />;
   }
 
-  return (
-    <HomeWindow
-      model={petModel}
-      runtimeWarning={windowMode.runtimeWarning}
-      windowMode={windowMode.mode}
-    />
-  );
+  return <HomeWindow model={petModel} runtimeWarning={windowMode.runtimeWarning} />;
 }

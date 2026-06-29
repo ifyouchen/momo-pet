@@ -92,8 +92,9 @@ pnpm --filter @momo/desktop tauri:dev
 ## 当前阻塞记录
 
 - macOS 已完成人工实机验收，通过透明窗口、拖动、隐藏/恢复、主页打开和位置恢复检查。
-- Windows 实机验收待执行；Sprint 2 整体在 Windows 通过前不标记 Done。
-- 已验证 `pnpm build:desktop`、`cargo check --locked` 和 `pnpm --filter @momo/desktop tauri:dev` 通过。
+- Windows 已完成关键实机冒烟验收：启动桌宠、打开主页、拖动桌宠、托盘退出可用。
+- Sprint 2 进入 Review，最终 Done 仍需完整勾选 Windows/macOS 验收清单。
+- 已验证 `pnpm build:desktop`、`cargo check` 和 `pnpm --filter @momo/desktop tauri:dev` 通过。
 
 ## 通过标准
 

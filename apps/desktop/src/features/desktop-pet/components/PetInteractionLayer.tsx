@@ -10,6 +10,7 @@ interface PetInteractionLayerProps {
   readonly compact?: boolean;
   readonly onComplete: (action: CareAction) => Promise<void>;
   readonly onCancel: () => void;
+  readonly onHintChange: (message: string | null) => void;
 }
 
 interface Point {
@@ -17,10 +18,15 @@ interface Point {
   readonly y: number;
 }
 
+const INTERACTION_TIMEOUT_MS = 12000;
+const INTERACTION_CANCEL_DELAY_MS = 700;
+const TOUCH_REQUIRED_DISTANCE = 120;
+const TOUCH_REQUIRED_DURATION_MS = 900;
+
 const MODE_COPY: Record<CareAction, { readonly title: string; readonly hint: string }> = {
-  feed: { title: '喂食模式', hint: '拖动小鱼干到 Momo 身上' },
-  touch: { title: '抚摸模式', hint: '按住 Momo 连续滑动 1 秒' },
-  clean: { title: '清理模式', hint: '点击弹出的清理按钮完成清理' },
+  feed: { title: '喂食中', hint: '把小鱼干递给我嘛' },
+  touch: { title: '抚摸中', hint: '摸摸头会更舒服' },
+  clean: { title: '清理中', hint: '帮我清理一下吧' },
 };
 
 /**
@@ -36,36 +42,46 @@ export function PetInteractionLayer({
   compact = false,
   onComplete,
   onCancel,
+  onHintChange,
 }: PetInteractionLayerProps) {
   const hitZoneRef = useRef<HTMLDivElement>(null);
   const lastTouchPointRef = useRef<Point | null>(null);
   const touchStartedAtRef = useRef(0);
+  const touchDistanceRef = useRef(0);
+  const isCompletingRef = useRef(false);
   const [dragPoint, setDragPoint] = useState<Point | null>(null);
   const [touchDistance, setTouchDistance] = useState(0);
-  const [message, setMessage] = useState('');
   const [isCompleting, setIsCompleting] = useState(false);
 
   useEffect(() => {
     if (!mode) {
+      onHintChange(null);
       return undefined;
     }
-    setMessage(MODE_COPY[mode].hint);
+    onHintChange(MODE_COPY[mode].hint);
     setDragPoint(null);
     setTouchDistance(0);
     setIsCompleting(false);
+    touchDistanceRef.current = 0;
+    isCompletingRef.current = false;
+    lastTouchPointRef.current = null;
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
+        onHintChange(null);
         onCancel();
       }
     };
-    const timeoutId = window.setTimeout(onCancel, 12000);
+    const timeoutId = window.setTimeout(() => {
+      onHintChange('那我先自己待一会儿');
+      window.setTimeout(onCancel, INTERACTION_CANCEL_DELAY_MS);
+    }, INTERACTION_TIMEOUT_MS);
     window.addEventListener('keydown', handleKeyDown);
     return () => {
       window.clearTimeout(timeoutId);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mode, onCancel]);
+  }, [mode, onCancel, onHintChange]);
 
   if (!mode) {
     return null;
@@ -75,13 +91,21 @@ export function PetInteractionLayer({
   const isBusy = !canCare || isSubmitting || isCompleting;
 
   const completeInteraction = async (action: CareAction) => {
-    if (isBusy) {
+    if (isBusy || isCompletingRef.current) {
       return;
     }
+    isCompletingRef.current = true;
     setIsCompleting(true);
-    setMessage('处理中...');
-    await onComplete(action);
-    onCancel();
+    onHintChange('我来啦');
+    try {
+      await onComplete(action);
+      onHintChange(null);
+      window.setTimeout(onCancel, INTERACTION_CANCEL_DELAY_MS);
+    } catch {
+      isCompletingRef.current = false;
+      setIsCompleting(false);
+      onHintChange('没有成功，再试一次');
+    }
   };
 
   const handleFoodPointerDown = (event: PointerEvent<HTMLButtonElement>) => {
@@ -90,7 +114,7 @@ export function PetInteractionLayer({
     }
     event.currentTarget.setPointerCapture(event.pointerId);
     setDragPoint({ x: event.clientX, y: event.clientY });
-    setMessage('拖到 Momo 身上松开');
+    onHintChange('递到我嘴边嘛');
   };
 
   const handleFoodPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
@@ -110,7 +134,7 @@ export function PetInteractionLayer({
       await completeInteraction('feed');
       return;
     }
-    setMessage('再靠近 Momo 一点点');
+    onHintChange('还差一点点，放到嘴边哦');
   };
 
   const handleTouchPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -120,8 +144,9 @@ export function PetInteractionLayer({
     event.currentTarget.setPointerCapture(event.pointerId);
     touchStartedAtRef.current = Date.now();
     lastTouchPointRef.current = { x: event.clientX, y: event.clientY };
+    touchDistanceRef.current = 0;
     setTouchDistance(0);
-    setMessage('继续轻轻滑动');
+    onHintChange('摸摸头会更舒服');
   };
 
   const handleTouchPointerMove = async (event: PointerEvent<HTMLDivElement>) => {
@@ -131,12 +156,14 @@ export function PetInteractionLayer({
     }
     const nextPoint = { x: event.clientX, y: event.clientY };
     const nextDistance =
-      touchDistance + Math.hypot(nextPoint.x - previousPoint.x, nextPoint.y - previousPoint.y);
+      touchDistanceRef.current +
+      Math.hypot(nextPoint.x - previousPoint.x, nextPoint.y - previousPoint.y);
+    touchDistanceRef.current = nextDistance;
     lastTouchPointRef.current = nextPoint;
     setTouchDistance(nextDistance);
 
     const elapsedMs = Date.now() - touchStartedAtRef.current;
-    if (elapsedMs >= 900 && nextDistance >= 80) {
+    if (elapsedMs >= TOUCH_REQUIRED_DURATION_MS && nextDistance >= TOUCH_REQUIRED_DISTANCE) {
       lastTouchPointRef.current = null;
       await completeInteraction('touch');
     }
@@ -144,20 +171,17 @@ export function PetInteractionLayer({
 
   const handleTouchPointerUp = () => {
     lastTouchPointRef.current = null;
-    if (!isCompleting) {
-      setMessage('滑动久一点就会触发抚摸');
+    if (!isCompletingRef.current) {
+      onHintChange('再摸一会儿嘛');
     }
   };
 
-  const touchProgress = Math.min(100, Math.round((touchDistance / 120) * 100));
+  const touchProgress = Math.min(100, Math.round((touchDistance / TOUCH_REQUIRED_DISTANCE) * 100));
 
   return (
     <div className={`interaction-layer${compact ? ' interaction-layer-compact' : ''}`}>
       <div className="interaction-panel" role="status">
-        <div>
-          <strong>{copy.title}</strong>
-          <span>{message}</span>
-        </div>
+        <strong>{copy.title}</strong>
         <button type="button" aria-label="退出交互模式" onClick={onCancel}>
           <X size={16} />
         </button>
@@ -177,6 +201,12 @@ export function PetInteractionLayer({
             <span className="touch-progress">
               <span style={{ width: `${touchProgress}%` }} />
             </span>
+          </>
+        ) : null}
+        {mode === 'feed' ? (
+          <>
+            <Fish size={compact ? 18 : 22} />
+            <span className="feed-target-label">嘴边</span>
           </>
         ) : null}
       </div>
