@@ -91,8 +91,9 @@ pnpm --filter @momo/desktop tauri:dev
 
 ## 当前阻塞记录
 
-- 本机当前未安装 `cargo`，无法执行 `cargo check` 或 `tauri:dev` 实机验收。
-- 已验证 `pnpm build:desktop` 通过。
+- macOS 已完成人工实机验收，通过透明窗口、拖动、隐藏/恢复、主页打开和位置恢复检查。
+- Windows 实机验收待执行；Sprint 2 整体在 Windows 通过前不标记 Done。
+- 已验证 `pnpm build:desktop`、`cargo check --locked` 和 `pnpm --filter @momo/desktop tauri:dev` 通过。
 
 ## 通过标准
 

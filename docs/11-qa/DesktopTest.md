@@ -27,3 +27,7 @@
 ## Sprint 2 验收清单
 
 详见 `docs/11-qa/Sprint-2-Desktop-Runtime-Acceptance-Checklist.md`。
+
+## Sprint 3 验收清单
+
+详见 `docs/11-qa/Sprint-3-Pet-Interaction-Modes-Acceptance-Checklist.md`。

@@ -1,8 +1,11 @@
-import { EyeOff, Home } from 'lucide-react';
+import { EyeOff, Heart, Home, Trash2, Utensils } from 'lucide-react';
 import type { MouseEvent } from 'react';
+import { useCallback, useState } from 'react';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
 import { hidePetWindow, openHomeWindow, startPetWindowDrag } from '../runtime/desktop-runtime-api';
+import type { CareAction } from '../types';
 import { MomoPetAvatar } from './MomoPetAvatar';
+import { PetInteractionLayer } from './PetInteractionLayer';
 import { SpeechBubble } from './SpeechBubble';
 import { StateDeltaFloat } from './StateDeltaFloat';
 
@@ -21,9 +24,11 @@ interface DesktopPetWindowProps {
  */
 export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProps) {
   const feedbackMessage = runtimeWarning ?? model.feedback.message;
+  const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
+  const cancelInteractionMode = useCallback(() => setActiveInteractionMode(null), []);
 
   const handleDragStart = (event: MouseEvent<HTMLElement>) => {
-    if (event.button !== 0 || isInteractiveElement(event.target)) {
+    if (activeInteractionMode || event.button !== 0 || isInteractiveElement(event.target)) {
       return;
     }
     void startPetWindowDrag();
@@ -42,9 +47,47 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
           message={feedbackMessage}
           tone={runtimeWarning ? 'error' : model.feedback.tone}
         />
+        <PetInteractionLayer
+          mode={activeInteractionMode}
+          canCare={model.canCare}
+          isSubmitting={model.activeAction !== null}
+          compact
+          onComplete={model.handleCareAction}
+          onCancel={cancelInteractionMode}
+        />
       </section>
 
       <div className="pet-window-toolbar" aria-label="桌宠窗口操作">
+        <button
+          type="button"
+          className="pet-window-tool"
+          aria-label="喂食模式"
+          title="喂食模式"
+          disabled={!model.canCare}
+          onClick={() => setActiveInteractionMode('feed')}
+        >
+          <Utensils size={17} />
+        </button>
+        <button
+          type="button"
+          className="pet-window-tool"
+          aria-label="抚摸模式"
+          title="抚摸模式"
+          disabled={!model.canCare}
+          onClick={() => setActiveInteractionMode('touch')}
+        >
+          <Heart size={17} />
+        </button>
+        <button
+          type="button"
+          className="pet-window-tool"
+          aria-label="清理模式"
+          title="清理模式"
+          disabled={!model.canCare}
+          onClick={() => setActiveInteractionMode('clean')}
+        >
+          <Trash2 size={17} />
+        </button>
         <button
           type="button"
           className="pet-window-tool"

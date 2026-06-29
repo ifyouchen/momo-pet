@@ -205,6 +205,154 @@ button {
   padding: 8px 24px 18px;
 }
 
+.interaction-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+}
+
+.interaction-panel {
+  width: min(300px, calc(100% - 48px));
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(58, 74, 92, 0.12);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 16px 36px rgba(42, 53, 70, 0.12);
+  color: #334155;
+  transform: translateX(-50%);
+  pointer-events: auto;
+}
+
+.interaction-panel div {
+  display: grid;
+  gap: 2px;
+}
+
+.interaction-panel strong {
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.interaction-panel span {
+  color: #607088;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.interaction-panel button {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border: 1px solid rgba(58, 74, 92, 0.12);
+  border-radius: 999px;
+  background: #fff7df;
+  color: #334155;
+  cursor: pointer;
+}
+
+.interaction-hit-zone {
+  width: 230px;
+  height: 210px;
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  display: grid;
+  place-items: center;
+  border: 2px dashed rgba(246, 168, 91, 0.42);
+  border-radius: 48%;
+  background: rgba(255, 247, 223, 0.22);
+  color: #d9782f;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.interaction-hit-zone-touch {
+  cursor: grab;
+  pointer-events: auto;
+  touch-action: none;
+}
+
+.interaction-hit-zone-touch:active {
+  cursor: grabbing;
+}
+
+.touch-progress {
+  width: 112px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.touch-progress span {
+  height: 100%;
+  display: block;
+  border-radius: inherit;
+  background: #ef8da7;
+  transition: width 120ms ease;
+}
+
+.food-token,
+.clean-token {
+  min-width: 94px;
+  height: 42px;
+  position: absolute;
+  z-index: 9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(58, 74, 92, 0.12);
+  border-radius: 999px;
+  padding: 0 14px;
+  background: #fff7df;
+  box-shadow: 0 16px 34px rgba(42, 53, 70, 0.14);
+  color: #334155;
+  cursor: grab;
+  font-size: 13px;
+  font-weight: 900;
+  pointer-events: auto;
+  user-select: none;
+  touch-action: none;
+}
+
+.food-token {
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+}
+
+.food-token-dragging {
+  position: fixed;
+  transform: translate(-50%, -50%) scale(1.04);
+}
+
+.food-token:active {
+  cursor: grabbing;
+}
+
+.clean-token {
+  right: calc(50% - 154px);
+  bottom: 62px;
+  background: #e9fbff;
+  cursor: pointer;
+}
+
+.food-token:disabled,
+.clean-token:disabled {
+  cursor: wait;
+  opacity: 0.72;
+}
+
 .momo-pet {
   width: 300px;
   height: 260px;
@@ -591,6 +739,12 @@ button {
   transform: translateY(-3px);
 }
 
+.dock-button-selected {
+  border-color: rgba(239, 141, 167, 0.48);
+  background: #fff0f5;
+  color: #9f3f5b;
+}
+
 .dock-button:disabled {
   cursor: not-allowed;
   opacity: 0.54;
@@ -657,6 +811,31 @@ button {
   right: 42px;
 }
 
+.pet-window-shell .interaction-layer {
+  inset: 8px 0 54px;
+}
+
+.pet-window-shell .interaction-panel {
+  width: min(286px, calc(100% - 38px));
+  top: 2px;
+  padding: 9px 10px;
+}
+
+.pet-window-shell .interaction-hit-zone {
+  width: 214px;
+  height: 192px;
+  top: 48%;
+}
+
+.pet-window-shell .food-token {
+  bottom: 8px;
+}
+
+.pet-window-shell .clean-token {
+  right: calc(50% - 128px);
+  bottom: 44px;
+}
+
 .pet-window-toolbar {
   position: absolute;
   right: 18px;
@@ -688,6 +867,12 @@ button {
   background: #fff7df;
   box-shadow: 0 16px 32px rgba(42, 53, 70, 0.16);
   transform: translateY(-2px);
+}
+
+.pet-window-tool:disabled {
+  cursor: not-allowed;
+  opacity: 0.54;
+  transform: none;
 }
 
 @keyframes momo-idle {

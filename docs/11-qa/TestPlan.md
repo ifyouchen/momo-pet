@@ -20,6 +20,7 @@
 
 - `docs/11-qa/Sprint-1-Acceptance-Checklist.md`：默认宠物闭环验收。
 - `docs/11-qa/Sprint-2-Desktop-Runtime-Acceptance-Checklist.md`：桌面运行时验收。
+- `docs/11-qa/Sprint-3-Pet-Interaction-Modes-Acceptance-Checklist.md`：宠物交互模式验收。
 
 ## 验收标准
 

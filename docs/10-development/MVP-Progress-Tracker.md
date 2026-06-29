@@ -16,8 +16,8 @@
 | --- | --- | --- | --- |
 | Sprint 0 | 工程骨架 | Review | No |
 | Sprint 1 | 默认宠物闭环 | Review | No |
-| Sprint 2 | Windows/macOS 桌面端运行时 | In Progress | No |
-| Sprint 3 | 宠物交互模式 | Not Started | No |
+| Sprint 2 | Windows/macOS 桌面端运行时 | In Progress | macOS Yes / Windows No |
+| Sprint 3 | 宠物交互模式 | In Progress | No |
 | Sprint 4 | Pet Studio | Not Started | No |
 | Sprint 5 | AI Pet DNA 任务 | Not Started | No |
 | Sprint 6 | 基础聊天 | Not Started | No |
@@ -29,7 +29,7 @@
 - Sprint 0 到 Sprint 6 是用户侧 MVP 主闭环。
 - Sprint 7 是内部后台支撑，不得影响用户侧主闭环交付。
 - Sprint 3 的交互模式只服务于喂食、抚摸、铲屎三个既有 MVP 功能，不新增玩具、追逐、宠物交友等范围。
-- 当前质量基线：`pnpm lint`、`pnpm format:check`、`pnpm build:packages`、`pnpm build:desktop`、`pnpm build:admin` 通过；后端在 JDK 21 下 `mvn test` 通过。
+- 当前质量基线：`pnpm lint`、`pnpm format:check`、`pnpm build:packages`、`pnpm build:desktop`、`pnpm build:admin` 通过；`cargo check --locked` 和 `pnpm --filter @momo/desktop tauri:dev` 在 macOS 通过；后端在 JDK 21 下 `mvn test` 通过。
 
 ## Sprint 0：工程骨架
 
@@ -59,22 +59,22 @@
 | 任务 | 状态 | 依赖 | 验收标准 |
 | --- | --- | --- | --- |
 | Windows 透明窗口 | In Progress | Tauri | Windows 窗口透明无边框 |
-| macOS 透明窗口 | In Progress | Tauri | macOS 窗口透明无边框 |
+| macOS 透明窗口 | Done | Tauri | macOS 窗口透明无边框 |
 | 基础置顶窗口 | In Progress | Tauri | Windows/macOS 普通桌面场景保持置顶 |
 | 拖动宠物 | In Progress | 透明窗口 | 两个平台可拖动 |
 | 位置缓存 | In Progress | 本地缓存 | 两个平台重启恢复位置 |
 | Windows 托盘 | In Progress | Tauri | 可显示、隐藏、退出 |
-| macOS 菜单栏 | In Progress | Tauri | 可显示、隐藏、退出 |
+| macOS 菜单栏 | Done | Tauri | 可显示、隐藏、退出 |
 
 ## Sprint 3：宠物交互模式
 
 | 任务 | 状态 | 依赖 | 验收标准 |
 | --- | --- | --- | --- |
-| FeedingMode | Not Started | Sprint 1/2 | 拖食物触发喂食 |
-| PettingMode | Not Started | Sprint 1/2 | 滑动触发抚摸 |
-| CleaningMode | Not Started | Sprint 1/2 | 点击清理事件成功 |
-| 模式退出规则 | Not Started | 三个模式 | Esc/超时/成功可退出 |
-| 交互反馈 | Not Started | 三个模式 | 有气泡和状态增量 |
+| FeedingMode | In Progress | Sprint 1/2 | 拖食物触发喂食 |
+| PettingMode | In Progress | Sprint 1/2 | 滑动触发抚摸 |
+| CleaningMode | In Progress | Sprint 1/2 | 点击清理事件成功 |
+| 模式退出规则 | In Progress | 三个模式 | Esc/超时/成功可退出 |
+| 交互反馈 | In Progress | 三个模式 | 有气泡和状态增量 |
 
 ## Sprint 4：Pet Studio
 

@@ -1,6 +1,9 @@
+import { useCallback, useState } from 'react';
+import type { CareAction } from '../types';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
 import { ActionDock } from './ActionDock';
 import { MomoPetAvatar } from './MomoPetAvatar';
+import { PetInteractionLayer } from './PetInteractionLayer';
 import { SpeechBubble } from './SpeechBubble';
 import { StateDeltaFloat } from './StateDeltaFloat';
 import { StatePanel } from './StatePanel';
@@ -20,6 +23,8 @@ interface DesktopSceneProps {
  */
 export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
   const petName = model.pet?.name ?? 'Momo Pet';
+  const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
+  const cancelInteractionMode = useCallback(() => setActiveInteractionMode(null), []);
 
   return (
     <main className="desktop-shell" aria-label="Project Momo desktop window">
@@ -48,13 +53,21 @@ export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
           <StateDeltaFloat deltas={model.stateDeltas} />
           <MomoPetAvatar action={model.visualAction} />
           <SpeechBubble message={model.feedback.message} tone={model.feedback.tone} />
+          <PetInteractionLayer
+            mode={activeInteractionMode}
+            canCare={model.canCare}
+            isSubmitting={model.activeAction !== null}
+            onComplete={model.handleCareAction}
+            onCancel={cancelInteractionMode}
+          />
         </section>
 
         <StatePanel isLoading={model.isBootstrapping} state={model.state} />
         <ActionDock
           activeAction={model.activeAction}
+          activeInteractionMode={activeInteractionMode}
           canCare={model.canCare}
-          onCareAction={model.handleCareAction}
+          onSelectInteractionMode={setActiveInteractionMode}
         />
       </section>
     </main>
