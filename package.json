@@ -11,8 +11,8 @@
     "build:admin": "pnpm --filter @momo/admin build",
     "build:packages": "pnpm --filter @momo/shared --filter @momo/pet-runtime --filter @momo/animation-engine --filter @momo/ui build",
     "lint": "pnpm --recursive lint",
-    "format": "prettier --write README.md package.json pnpm-workspace.yaml .prettierrc.json eslint.config.js \"apps/**/*.{json,css,ts,tsx,html}\" \"packages/**/*.{json,css,ts,tsx,md}\" \"native/**/*.md\" \"ai/**/*.md\" \"assets/**/*.md\"",
-    "format:check": "prettier --check README.md package.json pnpm-workspace.yaml .prettierrc.json eslint.config.js \"apps/**/*.{json,css,ts,tsx,html}\" \"packages/**/*.{json,css,ts,tsx,md}\" \"native/**/*.md\" \"ai/**/*.md\" \"assets/**/*.md\""
+    "format": "prettier --write README.md package.json pnpm-workspace.yaml .prettierrc.json eslint.config.js \"apps/**/*.{json,css,ts,tsx,html}\" \"!apps/**/src-tauri/gen/**\" \"packages/**/*.{json,css,ts,tsx,md}\" \"native/**/*.md\" \"ai/**/*.md\" \"assets/**/*.md\"",
+    "format:check": "prettier --check README.md package.json pnpm-workspace.yaml .prettierrc.json eslint.config.js \"apps/**/*.{json,css,ts,tsx,html}\" \"!apps/**/src-tauri/gen/**\" \"packages/**/*.{json,css,ts,tsx,md}\" \"native/**/*.md\" \"ai/**/*.md\" \"assets/**/*.md\""
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",

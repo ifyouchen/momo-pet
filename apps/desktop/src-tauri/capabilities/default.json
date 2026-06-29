@@ -1,0 +1,6 @@
+{
+  "identifier": "default",
+  "description": "Runtime permissions for Project Momo desktop pet and home windows.",
+  "windows": ["pet", "home"],
+  "permissions": ["core:default", "core:window:allow-start-dragging", "opener:default"]
+}

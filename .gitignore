@@ -1,15 +1,29 @@
 .DS_Store
 Thumbs.db
+Desktop.ini
 
 node_modules/
 dist/
 target/
+apps/desktop/src-tauri/gen/
 *.tsbuildinfo
 apps/*/node_modules/
 packages/*/node_modules/
 apps/backend/data/
+*.mv.db
+*.trace.db
 
 .env
 .env.local
+.env.*.local
 
 *.log
+
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+
+.qa-*.png
+apps/**/.qa-*.png

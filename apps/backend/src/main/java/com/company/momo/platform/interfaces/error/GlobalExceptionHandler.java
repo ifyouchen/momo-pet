@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 /**
  * platform Interface 层全局异常处理器，负责把异常转换为统一响应体。
@@ -46,6 +47,22 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException exception) {
         LOGGER.info("【参数校验失败】【errorCount={}】【status=REJECTED】", exception.getErrorCount());
         return ApiResponse.failure(ErrorCode.VALIDATION_FAILED.name(), ErrorCode.VALIDATION_FAILED.message());
+    }
+
+    /**
+     * 处理浏览器误访问后端静态资源或根路径导致的 404。
+     *
+     * <p>前置条件：Spring 静态资源处理器未找到资源。后置条件：返回统一 404 响应，
+     * 且不按系统异常打印 ERROR 堆栈。</p>
+     *
+     * @param exception 静态资源不存在异常
+     * @return 统一失败响应
+     */
+    @ExceptionHandler(NoResourceFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public ApiResponse<Void> handleNoResourceFoundException(NoResourceFoundException exception) {
+        LOGGER.debug("【资源不存在】【path={}】【status=NOT_FOUND】", exception.getResourcePath());
+        return ApiResponse.failure(ErrorCode.NOT_FOUND.name(), ErrorCode.NOT_FOUND.message());
     }
 
     /**

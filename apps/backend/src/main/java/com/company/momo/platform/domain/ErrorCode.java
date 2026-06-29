@@ -11,6 +11,11 @@ public enum ErrorCode {
     VALIDATION_FAILED("参数校验失败"),
 
     /**
+     * 请求路径不存在，通常来自浏览器误访问后端根路径或静态资源。
+     */
+    NOT_FOUND("请求资源不存在"),
+
+    /**
      * 请求的宠物不存在或不属于当前用户。
      */
     PET_NOT_FOUND("宠物不存在"),

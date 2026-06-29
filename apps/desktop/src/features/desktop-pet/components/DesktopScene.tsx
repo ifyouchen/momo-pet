@@ -8,6 +8,8 @@ import { StatePanel } from './StatePanel';
 interface DesktopSceneProps {
   /** 默认宠物主页所需的完整视图模型，集中承接 API 状态和交互回调。 */
   readonly model: DefaultPetModel;
+  /** runtime 降级提示，通常来自 Tauri 窗口模式读取失败。 */
+  readonly runtimeWarning: string | null;
 }
 
 /**
@@ -16,12 +18,17 @@ interface DesktopSceneProps {
  * 前置条件：model 由 useDefaultPet 提供。后置条件：用户可以查看状态并触发照顾动作。
  * @throws 本组件不抛出异常。
  */
-export function DesktopScene({ model }: DesktopSceneProps) {
+export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
   const petName = model.pet?.name ?? 'Momo Pet';
 
   return (
     <main className="desktop-shell" aria-label="Project Momo desktop window">
       <section className="scene" aria-label="Momo Pet desktop scene">
+        {runtimeWarning ? (
+          <div className="runtime-warning" role="status">
+            {runtimeWarning}
+          </div>
+        ) : null}
         <header className="scene-header">
           <div>
             <p className="scene-kicker">Desktop Pet</p>

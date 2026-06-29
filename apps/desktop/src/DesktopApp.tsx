@@ -1,5 +1,7 @@
-import { DesktopScene } from './features/desktop-pet/components/DesktopScene';
+import { DesktopPetWindow } from './features/desktop-pet/components/DesktopPetWindow';
+import { HomeWindow } from './features/desktop-pet/components/HomeWindow';
 import { useDefaultPet } from './features/desktop-pet/hooks/use-default-pet';
+import { useWindowMode } from './features/desktop-pet/hooks/use-window-mode';
 
 /**
  * 桌面端 MVP 入口，组合默认宠物养成场景并承接真实后端状态。
@@ -9,6 +11,11 @@ import { useDefaultPet } from './features/desktop-pet/hooks/use-default-pet';
  */
 export function DesktopApp() {
   const petModel = useDefaultPet();
+  const windowMode = useWindowMode();
 
-  return <DesktopScene model={petModel} />;
+  if (windowMode.mode === 'pet-window') {
+    return <DesktopPetWindow model={petModel} runtimeWarning={windowMode.runtimeWarning} />;
+  }
+
+  return <HomeWindow model={petModel} runtimeWarning={windowMode.runtimeWarning} />;
 }

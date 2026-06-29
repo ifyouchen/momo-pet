@@ -56,6 +56,7 @@ docs/
 28. [10-development/MVP-Progress-Tracker.md](10-development/MVP-Progress-Tracker.md)
 29. [10-development/AI-Developer-Working-Agreement.md](10-development/AI-Developer-Working-Agreement.md)
 30. [10-development/SprintPlan.md](10-development/SprintPlan.md)
+31. [10-development/Sprint-2-Tauri-Transparent-Pet-Window-MVP.md](10-development/Sprint-2-Tauri-Transparent-Pet-Window-MVP.md)
 
 ## 当前阶段
 

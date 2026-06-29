@@ -39,4 +39,20 @@ class HealthControllerTest {
             .andExpect(jsonPath("$.data.status", is("UP")))
             .andExpect(jsonPath("$.data.serviceName", is("momo-backend")));
     }
+
+    /**
+     * 验证浏览器自动请求 favicon 时后端返回统一 404，而不是系统异常。
+     *
+     * <p>前置条件：Spring 测试上下文已启动。后置条件：响应体包含 NOT_FOUND。
+     * 可能抛出 MockMvc 执行异常。</p>
+     *
+     * @throws Exception MockMvc 请求执行失败
+     */
+    @Test
+    void getFavicon_whenStaticResourceMissing_shouldReturnNotFoundResponse() throws Exception {
+        mockMvc.perform(get("/favicon.ico"))
+            .andExpect(status().isNotFound())
+            .andExpect(jsonPath("$.success", is(false)))
+            .andExpect(jsonPath("$.code", is("NOT_FOUND")));
+    }
 }

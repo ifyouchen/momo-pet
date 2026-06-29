@@ -12,14 +12,18 @@
   "app": {
     "windows": [
       {
-        "title": "Project Momo",
-        "width": 720,
+        "label": "pet",
+        "title": "Momo Pet",
+        "url": "/?window=pet",
+        "width": 420,
         "height": 520,
-        "resizable": true,
+        "resizable": false,
         "fullscreen": false,
         "transparent": true,
         "decorations": false,
-        "alwaysOnTop": true
+        "alwaysOnTop": true,
+        "skipTaskbar": true,
+        "shadow": false
       }
     ],
     "security": {
@@ -29,6 +33,6 @@
   "bundle": {
     "active": true,
     "targets": "all",
-    "icon": []
+    "icon": ["icons/icon.ico"]
   }
 }
