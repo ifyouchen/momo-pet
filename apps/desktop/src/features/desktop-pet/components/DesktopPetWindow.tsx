@@ -2,10 +2,12 @@ import { EyeOff, Heart, Home, Trash2, Utensils } from 'lucide-react';
 import type { MouseEvent } from 'react';
 import { useCallback, useState } from 'react';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
+import type { RuntimeWindowMode } from '../runtime/desktop-runtime-api';
 import { hidePetWindow, openHomeWindow, startPetWindowDrag } from '../runtime/desktop-runtime-api';
 import type { CareAction } from '../types';
 import { MomoPetAvatar } from './MomoPetAvatar';
 import { PetInteractionLayer } from './PetInteractionLayer';
+import { RuntimeModeBadge } from './RuntimeModeBadge';
 import { SpeechBubble } from './SpeechBubble';
 import { StateDeltaFloat } from './StateDeltaFloat';
 
@@ -14,6 +16,8 @@ interface DesktopPetWindowProps {
   readonly model: DefaultPetModel;
   /** runtime 降级提示，通常来自 Tauri 窗口模式读取失败。 */
   readonly runtimeWarning: string | null;
+  /** 当前窗口模式，用于确认桌宠是否由 pet window 渲染。 */
+  readonly windowMode: RuntimeWindowMode;
 }
 
 /**
@@ -22,7 +26,7 @@ interface DesktopPetWindowProps {
  * 前置条件：运行在 pet-window 模式或浏览器预览 `?window=pet`。后置条件：桌宠可拖动并可打开主页。
  * @throws 本组件不主动抛出异常。
  */
-export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProps) {
+export function DesktopPetWindow({ model, runtimeWarning, windowMode }: DesktopPetWindowProps) {
   const feedbackMessage = runtimeWarning ?? model.feedback.message;
   const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
   const cancelInteractionMode = useCallback(() => setActiveInteractionMode(null), []);
@@ -36,13 +40,28 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
 
   return (
     <main className="pet-window-shell" aria-label="Momo Pet transparent desktop window">
+      <RuntimeModeBadge mode={windowMode} />
       <section
         className="pet-window-drag-zone"
         aria-label="拖动 Momo Pet"
+        data-tauri-drag-region
         onMouseDown={handleDragStart}
       >
         <StateDeltaFloat deltas={model.stateDeltas} />
         <MomoPetAvatar action={model.visualAction} />
+        <button
+          type="button"
+          className="pet-window-drag-handle"
+          aria-label="拖动桌宠"
+          title="按住拖动桌宠"
+          data-tauri-drag-region
+          onMouseDown={(event) => {
+            event.preventDefault();
+            void startPetWindowDrag();
+          }}
+        >
+          拖动
+        </button>
         <SpeechBubble
           message={feedbackMessage}
           tone={runtimeWarning ? 'error' : model.feedback.tone}

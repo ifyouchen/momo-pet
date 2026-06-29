@@ -1,9 +1,11 @@
 import { useCallback, useState } from 'react';
 import type { CareAction } from '../types';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
+import type { RuntimeWindowMode } from '../runtime/desktop-runtime-api';
 import { ActionDock } from './ActionDock';
 import { MomoPetAvatar } from './MomoPetAvatar';
 import { PetInteractionLayer } from './PetInteractionLayer';
+import { RuntimeModeBadge } from './RuntimeModeBadge';
 import { SpeechBubble } from './SpeechBubble';
 import { StateDeltaFloat } from './StateDeltaFloat';
 import { StatePanel } from './StatePanel';
@@ -13,6 +15,8 @@ interface DesktopSceneProps {
   readonly model: DefaultPetModel;
   /** runtime 降级提示，通常来自 Tauri 窗口模式读取失败。 */
   readonly runtimeWarning: string | null;
+  /** 当前窗口模式，用于确认主页是否由 home window 渲染。 */
+  readonly windowMode: RuntimeWindowMode;
 }
 
 /**
@@ -21,7 +25,7 @@ interface DesktopSceneProps {
  * 前置条件：model 由 useDefaultPet 提供。后置条件：用户可以查看状态并触发照顾动作。
  * @throws 本组件不抛出异常。
  */
-export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
+export function DesktopScene({ model, runtimeWarning, windowMode }: DesktopSceneProps) {
   const petName = model.pet?.name ?? 'Momo Pet';
   const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
   const cancelInteractionMode = useCallback(() => setActiveInteractionMode(null), []);
@@ -29,6 +33,7 @@ export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
   return (
     <main className="desktop-shell" aria-label="Project Momo desktop window">
       <section className="scene" aria-label="Momo Pet desktop scene">
+        <RuntimeModeBadge mode={windowMode} />
         {runtimeWarning ? (
           <div className="runtime-warning" role="status">
             {runtimeWarning}

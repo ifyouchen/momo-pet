@@ -2,22 +2,21 @@ use crate::{position_store, runtime_error::RuntimeError};
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
-    AppHandle, Manager, PhysicalPosition, WebviewUrl, WebviewWindow, WebviewWindowBuilder, Window,
-    WindowEvent,
+    AppHandle, Manager, PhysicalPosition, PhysicalSize, WebviewWindow, Window, WindowEvent,
 };
 
 const PET_WINDOW_LABEL: &str = "pet";
 const HOME_WINDOW_LABEL: &str = "home";
 const PET_WINDOW_WIDTH: f64 = 420.0;
 const PET_WINDOW_HEIGHT: f64 = 520.0;
-const HOME_WINDOW_WIDTH: f64 = 960.0;
-const HOME_WINDOW_HEIGHT: f64 = 720.0;
-
 /// Initializes desktop runtime window behavior.
 ///
 /// Precondition: the Tauri app has already loaded configured windows. Postcondition: the pet
 /// window position is restored and a tray/menu recovery entry is installed when supported.
 pub fn setup(app: &AppHandle) -> Result<(), RuntimeError> {
+    log_runtime_windows(app);
+    configure_pet_window(app);
+    configure_home_window(app);
     restore_pet_window_position(app);
     create_tray(app)?;
     Ok(())
@@ -28,6 +27,11 @@ pub fn setup(app: &AppHandle) -> Result<(), RuntimeError> {
 /// Precondition: called from Tauri's window event hook. Postcondition: pet window movement is
 /// persisted on a best-effort basis without crashing the app.
 pub fn handle_window_event(window: &Window, event: &WindowEvent) {
+    if let WindowEvent::CloseRequested { api, .. } = event {
+        handle_close_requested(window, api);
+        return;
+    }
+
     if window.label() != PET_WINDOW_LABEL {
         return;
     }
@@ -53,6 +57,7 @@ pub fn handle_window_event(window: &Window, event: &WindowEvent) {
 /// focused.
 #[tauri::command]
 pub fn open_home_window(app: AppHandle) -> Result<(), RuntimeError> {
+    eprintln!("【打开主页窗口】【target=home-window】");
     show_or_create_home_window(&app)
 }
 
@@ -62,9 +67,11 @@ pub fn open_home_window(app: AppHandle) -> Result<(), RuntimeError> {
 /// focused.
 #[tauri::command]
 pub fn show_pet_window(app: AppHandle) -> Result<(), RuntimeError> {
+    eprintln!("【显示桌宠窗口】【target=pet-window】");
     let window = app
         .get_webview_window(PET_WINDOW_LABEL)
         .ok_or_else(|| RuntimeError::new("PET_WINDOW_NOT_FOUND", "pet window is not available"))?;
+    apply_pet_window_runtime_options(&window);
     window.show()?;
     window.set_focus()?;
     Ok(())
@@ -83,16 +90,143 @@ pub fn hide_pet_window(app: AppHandle) -> Result<(), RuntimeError> {
     Ok(())
 }
 
+/// Hides all user-facing windows while keeping tray/menu recovery available.
+///
+/// Precondition: at least one runtime window may exist. Postcondition: pet and home windows are
+/// hidden on a best-effort basis, and the process keeps running in the tray/menu bar.
+#[tauri::command]
+pub fn hide_all_windows_to_tray(app: AppHandle) -> Result<(), RuntimeError> {
+    save_current_pet_position(&app);
+    hide_window_if_available(&app, PET_WINDOW_LABEL)?;
+    hide_window_if_available(&app, HOME_WINDOW_LABEL)?;
+    Ok(())
+}
+
+/// Starts native dragging for the current pet window.
+///
+/// Precondition: called from a mouse-down interaction in the desktop runtime. Postcondition: the
+/// operating system takes over window movement for this drag gesture.
+#[tauri::command]
+pub fn start_pet_window_drag(window: WebviewWindow) -> Result<(), RuntimeError> {
+    window.start_dragging()?;
+    Ok(())
+}
+
 /// Returns the mode for the current runtime window.
 ///
 /// Precondition: called from a Tauri webview. Postcondition: returns `pet-window` for the pet
 /// label and `home-window` otherwise.
 #[tauri::command]
 pub fn get_runtime_window_mode(window: WebviewWindow) -> String {
-    if window.label() == PET_WINDOW_LABEL {
-        "pet-window".to_string()
+    let label = window.label().to_string();
+    let mode = if label == PET_WINDOW_LABEL {
+        "pet-window"
     } else {
-        "home-window".to_string()
+        "home-window"
+    };
+    eprintln!("【窗口模式识别】【label={}】【mode={}】", label, mode);
+    mode.to_string()
+}
+
+fn log_runtime_windows(app: &AppHandle) {
+    for label in [PET_WINDOW_LABEL, HOME_WINDOW_LABEL] {
+        let exists = app.get_webview_window(label).is_some();
+        eprintln!(
+            "【桌面启动窗口检查】【label={}】【exists={}】",
+            label, exists
+        );
+    }
+}
+
+fn configure_pet_window(app: &AppHandle) {
+    let Some(window) = app.get_webview_window(PET_WINDOW_LABEL) else {
+        return;
+    };
+    apply_pet_window_runtime_options(&window);
+}
+
+fn configure_home_window(app: &AppHandle) {
+    let Some(window) = app.get_webview_window(HOME_WINDOW_LABEL) else {
+        return;
+    };
+    apply_home_window_runtime_options(&window);
+    if let Err(error) = window.hide() {
+        eprintln!("【隐藏初始主页窗口失败】【window=home】【error={}】", error);
+    }
+}
+
+fn apply_pet_window_runtime_options(window: &WebviewWindow) {
+    if let Err(error) = window.set_title("Momo Pet") {
+        eprintln!("【配置桌宠标题失败】【window=pet】【error={}】", error);
+    }
+    if let Err(error) = window.set_size(PhysicalSize::new(
+        PET_WINDOW_WIDTH as u32,
+        PET_WINDOW_HEIGHT as u32,
+    )) {
+        eprintln!("【配置桌宠尺寸失败】【window=pet】【error={}】", error);
+    }
+    if let Err(error) = window.set_resizable(false) {
+        eprintln!("【配置桌宠缩放失败】【window=pet】【error={}】", error);
+    }
+    if let Err(error) = window.set_decorations(false) {
+        eprintln!("【配置桌宠边框失败】【window=pet】【error={}】", error);
+    }
+    if let Err(error) = window.set_always_on_top(true) {
+        eprintln!("【配置桌宠置顶失败】【window=pet】【error={}】", error);
+    }
+    if let Err(error) = window.set_skip_taskbar(true) {
+        eprintln!(
+            "【配置桌宠任务栏隐藏失败】【window=pet】【error={}】",
+            error
+        );
+    }
+    if let Err(error) = window.set_shadow(false) {
+        eprintln!("【配置桌宠阴影失败】【window=pet】【error={}】", error);
+    }
+}
+
+fn apply_home_window_runtime_options(window: &WebviewWindow) {
+    if let Err(error) = window.set_title("Project Momo") {
+        eprintln!("【配置主页标题失败】【window=home】【error={}】", error);
+    }
+    if let Err(error) = window.set_size(PhysicalSize::new(960, 720)) {
+        eprintln!("【配置主页尺寸失败】【window=home】【error={}】", error);
+    }
+    if let Err(error) = window.set_resizable(true) {
+        eprintln!("【配置主页缩放失败】【window=home】【error={}】", error);
+    }
+    if let Err(error) = window.set_decorations(true) {
+        eprintln!("【配置主页边框失败】【window=home】【error={}】", error);
+    }
+    if let Err(error) = window.set_always_on_top(false) {
+        eprintln!("【配置主页置顶失败】【window=home】【error={}】", error);
+    }
+    if let Err(error) = window.set_skip_taskbar(false) {
+        eprintln!(
+            "【配置主页任务栏显示失败】【window=home】【error={}】",
+            error
+        );
+    }
+    if let Err(error) = window.set_shadow(true) {
+        eprintln!("【配置主页阴影失败】【window=home】【error={}】", error);
+    }
+}
+
+fn handle_close_requested(window: &Window, api: &tauri::CloseRequestApi) {
+    api.prevent_close();
+    if window.label() == HOME_WINDOW_LABEL {
+        eprintln!("【关闭主页窗口】【action=hide】【source=titlebar】");
+        if let Err(error) = window.hide() {
+            eprintln!("【隐藏主页窗口失败】【window=home】【error={}】", error);
+        }
+        return;
+    }
+    if window.label() == PET_WINDOW_LABEL {
+        eprintln!("【关闭桌宠窗口】【action=hide】【source=titlebar】");
+        save_current_pet_position(&window.app_handle());
+        if let Err(error) = window.hide() {
+            eprintln!("【隐藏桌宠窗口失败】【window=pet】【error={}】", error);
+        }
     }
 }
 
@@ -132,7 +266,7 @@ fn create_tray(app: &AppHandle) -> Result<(), RuntimeError> {
                 }
             }
             "hide_pet" => {
-                if let Err(error) = hide_pet_window(app.clone()) {
+                if let Err(error) = hide_all_windows_to_tray(app.clone()) {
                     eprintln!(
                         "【隐藏桌宠窗口失败】【source=tray-menu】【error={}】",
                         error
@@ -149,7 +283,7 @@ fn create_tray(app: &AppHandle) -> Result<(), RuntimeError> {
             }
             "quit" => {
                 save_current_pet_position(app);
-                app.exit(0);
+                std::process::exit(0);
             }
             _ => {}
         })
@@ -159,23 +293,23 @@ fn create_tray(app: &AppHandle) -> Result<(), RuntimeError> {
 
 fn show_or_create_home_window(app: &AppHandle) -> Result<(), RuntimeError> {
     if let Some(window) = app.get_webview_window(HOME_WINDOW_LABEL) {
+        eprintln!("【显示主页窗口】【label=home】【source=configured-window】");
+        apply_home_window_runtime_options(&window);
         window.show()?;
         window.set_focus()?;
         return Ok(());
     }
 
-    WebviewWindowBuilder::new(
-        app,
-        HOME_WINDOW_LABEL,
-        WebviewUrl::App("/?window=home".into()),
-    )
-    .title("Project Momo")
-    .inner_size(HOME_WINDOW_WIDTH, HOME_WINDOW_HEIGHT)
-    .min_inner_size(720.0, 520.0)
-    .resizable(true)
-    .decorations(true)
-    .visible(true)
-    .build()?;
+    Err(RuntimeError::new(
+        "HOME_WINDOW_NOT_FOUND",
+        "home window is not available",
+    ))
+}
+
+fn hide_window_if_available(app: &AppHandle, label: &str) -> Result<(), RuntimeError> {
+    if let Some(window) = app.get_webview_window(label) {
+        window.hide()?;
+    }
     Ok(())
 }
 

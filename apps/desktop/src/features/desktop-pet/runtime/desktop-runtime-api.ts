@@ -1,5 +1,4 @@
 import { invoke, isTauri } from '@tauri-apps/api/core';
-import { getCurrentWindow } from '@tauri-apps/api/window';
 
 export type RuntimeWindowMode = 'pet-window' | 'home-window';
 
@@ -19,14 +18,14 @@ export function isDesktopRuntime(): boolean {
  * @throws Tauri command 失败时向调用方抛出异常，由 hook 转为降级模式。
  */
 export async function getRuntimeWindowMode(): Promise<RuntimeWindowMode> {
+  if (isDesktopRuntime()) {
+    return invoke<RuntimeWindowMode>('get_runtime_window_mode');
+  }
   const previewMode = getPreviewWindowMode();
   if (previewMode) {
     return previewMode;
   }
-  if (!isDesktopRuntime()) {
-    return 'home-window';
-  }
-  return invoke<RuntimeWindowMode>('get_runtime_window_mode');
+  return 'home-window';
 }
 
 /**
@@ -39,7 +38,7 @@ export async function startPetWindowDrag(): Promise<void> {
   if (!isDesktopRuntime()) {
     return;
   }
-  await getCurrentWindow().startDragging();
+  await invoke('start_pet_window_drag');
 }
 
 /**
@@ -65,7 +64,7 @@ export async function hidePetWindow(): Promise<void> {
   if (!isDesktopRuntime()) {
     return;
   }
-  await invoke('hide_pet_window');
+  await invoke('hide_all_windows_to_tray');
 }
 
 function getPreviewWindowMode(): RuntimeWindowMode | null {

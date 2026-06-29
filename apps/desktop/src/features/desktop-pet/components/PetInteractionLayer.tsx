@@ -20,7 +20,7 @@ interface Point {
 const MODE_COPY: Record<CareAction, { readonly title: string; readonly hint: string }> = {
   feed: { title: '喂食模式', hint: '拖动小鱼干到 Momo 身上' },
   touch: { title: '抚摸模式', hint: '按住 Momo 连续滑动 1 秒' },
-  clean: { title: '清理模式', hint: '点击需要清理的位置' },
+  clean: { title: '清理模式', hint: '点击弹出的清理按钮完成清理' },
 };
 
 /**
@@ -204,7 +204,7 @@ export function PetInteractionLayer({
           onClick={() => void completeInteraction('clean')}
         >
           <Eraser size={compact ? 20 : 24} />
-          <span>清理</span>
+          <span>{isBusy ? '清理中' : '点击清理'}</span>
         </button>
       ) : null}
     </div>

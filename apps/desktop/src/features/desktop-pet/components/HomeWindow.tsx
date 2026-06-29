@@ -1,4 +1,5 @@
 import type { DefaultPetModel } from '../hooks/use-default-pet';
+import type { RuntimeWindowMode } from '../runtime/desktop-runtime-api';
 import { DesktopScene } from './DesktopScene';
 
 interface HomeWindowProps {
@@ -6,6 +7,8 @@ interface HomeWindowProps {
   readonly model: DefaultPetModel;
   /** runtime 降级提示。 */
   readonly runtimeWarning: string | null;
+  /** 当前窗口模式，用于页面水印确认渲染入口。 */
+  readonly windowMode: RuntimeWindowMode;
 }
 
 /**
@@ -14,6 +17,6 @@ interface HomeWindowProps {
  * 前置条件：model 已完成默认宠物初始化流程。后置条件：用户可以查看和操作完整 MVP 主页。
  * @throws 本组件不抛出异常。
  */
-export function HomeWindow({ model, runtimeWarning }: HomeWindowProps) {
-  return <DesktopScene model={model} runtimeWarning={runtimeWarning} />;
+export function HomeWindow({ model, runtimeWarning, windowMode }: HomeWindowProps) {
+  return <DesktopScene model={model} runtimeWarning={runtimeWarning} windowMode={windowMode} />;
 }
