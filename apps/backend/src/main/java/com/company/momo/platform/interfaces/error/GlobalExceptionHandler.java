@@ -6,6 +6,7 @@ import com.company.momo.platform.interfaces.common.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -47,6 +48,19 @@ public class GlobalExceptionHandler {
     public ApiResponse<Void> handleValidationException(MethodArgumentNotValidException exception) {
         LOGGER.info("【参数校验失败】【errorCount={}】【status=REJECTED】", exception.getErrorCount());
         return ApiResponse.failure(ErrorCode.VALIDATION_FAILED.name(), ErrorCode.VALIDATION_FAILED.message());
+    }
+
+    /**
+     * 处理 Servlet multipart 在进入业务层前拦截到的上传超限异常。
+     *
+     * @param exception 上传大小超限异常
+     * @return 统一失败响应
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ApiResponse<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException exception) {
+        LOGGER.info("【上传超限】【code={}】【message={}】", ErrorCode.ASSET_TOO_LARGE, exception.getMessage());
+        return ApiResponse.failure(ErrorCode.ASSET_TOO_LARGE.name(), ErrorCode.ASSET_TOO_LARGE.message());
     }
 
     /**

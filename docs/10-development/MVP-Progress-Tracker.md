@@ -19,7 +19,7 @@
 | Sprint 2 | Windows/macOS 桌面端运行时 | Review      | macOS Yes / Windows Yes |
 | Sprint 3 | 宠物交互模式               | Review      | Yes                     |
 | Sprint 4 | Pet Studio                 | Review      | No                      |
-| Sprint 5 | AI Pet DNA 任务            | Review      | No                      |
+| Sprint 5 | AI Pet DNA 任务            | Done        | Yes                     |
 | Sprint 6 | 基础聊天                   | Not Started | No                      |
 | Sprint 7 | 后台 MVP                   | Not Started | No                      |
 | Sprint 8 | Beta 验收                  | Not Started | No                      |
@@ -93,13 +93,13 @@
 
 | 任务           | 状态   | 依赖         | 验收标准                                                        |
 | -------------- | ------ | ------------ | --------------------------------------------------------------- |
-| 图片上传接口   | Review | asset 上下文 | 返回 assetId                                                    |
-| 图片角色保存   | Review | 图片上传接口 | 保存 photoRole 并校验所属 petId                                 |
-| AI 任务创建    | Review | ai 上下文    | 接收 primaryPhotoAssetId 和 referencePhotoAssetIds，返回 taskId |
-| AI 任务查询    | Review | ai 上下文    | 返回状态                                                        |
-| Pet DNA 草稿   | Review | AI Gateway   | 符合 Schema                                                     |
-| 多图一致性提醒 | Review | AI Gateway   | 可展示 mismatchWarning 和低置信度字段                           |
-| 失败降级       | Review | 任务状态     | 可手动创建                                                      |
+| 图片上传接口   | Done | asset 上下文 | 返回 assetId                                                    |
+| 图片角色保存   | Done | 图片上传接口 | 保存 photoRole 并校验所属 petId                                 |
+| AI 任务创建    | Done | ai 上下文    | 接收 primaryPhotoAssetId 和 referencePhotoAssetIds，返回 taskId |
+| AI 任务查询    | Done | ai 上下文    | 返回状态                                                        |
+| Pet DNA 草稿   | Done | AI Gateway   | 符合 Schema                                                     |
+| 多图一致性提醒 | Done | AI Gateway   | 可展示 mismatchWarning 和低置信度字段                           |
+| 失败降级       | Done | 任务状态     | 可手动创建                                                      |
 
 ## Sprint 6：基础聊天
 
