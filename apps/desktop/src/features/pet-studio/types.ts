@@ -2,7 +2,7 @@ import type { Species } from '@momo/shared';
 
 export type PhotoRole = 'PRIMARY' | 'FRONT' | 'SIDE' | 'BACK' | 'DETAIL' | 'OTHER';
 
-export type PetStudioStep = 'input' | 'ritual' | 'confirm';
+export type PetStudioStep = 'input' | 'uploading' | 'analyzing' | 'ai-failed' | 'confirm';
 
 export interface PetStudioPhoto {
   readonly id: string;

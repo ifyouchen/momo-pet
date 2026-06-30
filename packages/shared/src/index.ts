@@ -81,3 +81,106 @@ export interface CleanPetRequest {
 export interface CarePetResponse {
   state: PetState;
 }
+
+/**
+ * Pet Studio photo roles used by upload and AI task APIs.
+ */
+export type PhotoRole = 'PRIMARY' | 'FRONT' | 'SIDE' | 'BACK' | 'DETAIL' | 'OTHER';
+
+/**
+ * Uploaded asset metadata returned by backend.
+ */
+export interface UploadedAsset {
+  assetId: string;
+  assetType: 'ORIGINAL_PHOTO';
+  photoRole: PhotoRole;
+  status: 'READY' | 'FAILED';
+  contentType: string;
+  sizeBytes: number;
+}
+
+/**
+ * Request body for creating Pet DNA generation tasks.
+ */
+export interface CreatePetDnaTaskRequest {
+  name: string;
+  speciesHint: Species;
+  primaryPhotoAssetId: string;
+  referencePhotoAssetIds: string[];
+  userDescription: string;
+}
+
+/**
+ * AI task creation response.
+ */
+export interface CreateAiTaskResponse {
+  taskId: string;
+  status: AiTaskStatus;
+}
+
+/**
+ * AI task status values used by polling UI.
+ */
+export type AiTaskStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'TIMEOUT';
+
+/**
+ * MVP Pet DNA draft returned by AI task.
+ */
+export interface PetDnaDraft {
+  name: string;
+  species: Species;
+  breed: string;
+  appearance: {
+    primaryColor: string;
+    secondaryColor?: string;
+    pattern: string;
+    eyeColor: string;
+  };
+  personality: {
+    primary: string;
+    energyLevel: 'LOW' | 'MEDIUM' | 'HIGH';
+  };
+  preferences: {
+    favoriteFoods: string[];
+    dislikedThings: string[];
+  };
+  voice: {
+    catchphrases: string[];
+  };
+  generation?: {
+    source: 'AI' | 'MANUAL' | 'MIXED';
+    confidence?: number;
+    model?: string;
+    generatedAt?: string;
+    evidenceSummary?: string;
+    mismatchWarning?: string | null;
+  };
+}
+
+/**
+ * AI task detail response.
+ */
+export interface AiTaskResponse {
+  taskId: string;
+  petId: string;
+  taskType: 'PET_DNA_GENERATION';
+  status: AiTaskStatus;
+  result: { petDnaDraft: PetDnaDraft } | null;
+  errorCode: string | null;
+}
+
+/**
+ * Confirm Pet DNA request.
+ */
+export interface ConfirmPetDnaRequest {
+  source: 'AI' | 'MANUAL' | 'MIXED';
+  dna: PetDnaDraft;
+}
+
+/**
+ * Confirm Pet DNA response.
+ */
+export interface ConfirmPetDnaResponse {
+  petId: string;
+  version: number;
+}

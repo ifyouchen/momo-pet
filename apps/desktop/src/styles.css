@@ -886,6 +886,11 @@ button {
   text-align: center;
 }
 
+.photo-upload-dropzone.is-dragging {
+  border-color: rgba(225, 119, 66, 0.82);
+  background: rgba(255, 238, 194, 0.72);
+}
+
 .photo-upload-dropzone input {
   display: none;
 }

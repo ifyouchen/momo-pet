@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { Species } from '@momo/shared';
 import type { ManualPetDnaDraft, PetStudioPhoto, PhotoRole } from '../types';
-import { getDraftBlockingMessage, validatePhotoFiles } from '../validation';
+import { getDraftBlockingMessage, validateImageDecoding, validatePhotoFiles } from '../validation';
 
 const DEFAULT_DNA: ManualPetDnaDraft = {
   name: 'Momo Pet',
@@ -28,7 +28,7 @@ export interface PetStudioDraftModel {
   readonly setName: (name: string) => void;
   readonly setSpecies: (species: Species) => void;
   readonly setDescription: (description: string) => void;
-  readonly addPhotos: (files: readonly File[]) => void;
+  readonly addPhotos: (files: readonly File[]) => Promise<void>;
   readonly removePhoto: (photoId: string) => void;
   readonly updatePhotoRole: (photoId: string, role: PhotoRole) => void;
   readonly updateDna: (patch: Partial<ManualPetDnaDraft>) => void;
@@ -52,10 +52,15 @@ export function usePetStudioDraft(): PetStudioDraftModel {
   const blockingMessage = useMemo(() => getDraftBlockingMessage(name, photos), [name, photos]);
 
   const addPhotos = useCallback(
-    (files: readonly File[]) => {
+    async (files: readonly File[]) => {
       const validation = validatePhotoFiles(files, photos);
       if (!validation.ok) {
         setErrorMessage(validation.message);
+        return;
+      }
+      const decodingValidation = await validateImageDecoding(files);
+      if (!decodingValidation.ok) {
+        setErrorMessage(decodingValidation.message);
         return;
       }
       setErrorMessage(null);

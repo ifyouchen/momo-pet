@@ -50,6 +50,23 @@ export function validatePhotoFiles(
 }
 
 /**
+ * 校验图片文件是否能被当前浏览器解码。
+ *
+ * 前置条件：files 已通过类型和大小校验。后置条件：失败时返回统一可展示文案。
+ */
+export async function validateImageDecoding(
+  files: readonly File[],
+): Promise<PhotoValidationResult> {
+  for (const file of files) {
+    const canDecode = await canDecodeImage(file);
+    if (!canDecode) {
+      return { ok: false, message: '这张图片无法读取，请换一张更清晰的。' };
+    }
+  }
+  return { ok: true, message: null };
+}
+
+/**
  * 判断 Pet Studio 草稿是否具备进入确认页的最低条件。
  *
  * 前置条件：name 和 photos 来自当前前端草稿。后置条件：返回阻止继续的文案。
@@ -68,4 +85,37 @@ export function getDraftBlockingMessage(
     return '需要先上传一张主图。';
   }
   return null;
+}
+
+async function canDecodeImage(file: File): Promise<boolean> {
+  if ('createImageBitmap' in window) {
+    return canDecodeWithImageBitmap(file);
+  }
+  return canDecodeWithImageElement(file);
+}
+
+async function canDecodeWithImageBitmap(file: File): Promise<boolean> {
+  try {
+    const imageBitmap = await createImageBitmap(file);
+    imageBitmap.close();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function canDecodeWithImageElement(file: File): Promise<boolean> {
+  return new Promise((resolve) => {
+    const objectUrl = URL.createObjectURL(file);
+    const image = new Image();
+    image.onload = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(image.naturalWidth > 0 && image.naturalHeight > 0);
+    };
+    image.onerror = () => {
+      URL.revokeObjectURL(objectUrl);
+      resolve(false);
+    };
+    image.src = objectUrl;
+  });
 }

@@ -1,12 +1,13 @@
 import { Sparkles, X } from 'lucide-react';
-import { useEffect, useState } from 'react';
 import type { Species } from '@momo/shared';
+import { usePetStudioAiFlow } from '../hooks/use-pet-studio-ai-flow';
 import { usePetStudioDraft } from '../hooks/use-pet-studio-draft';
-import type { PetStudioStep } from '../types';
 import { PetDnaManualForm } from './PetDnaManualForm';
 import { PhotoUploadPanel } from './PhotoUploadPanel';
 
 interface PetStudioViewProps {
+  /** 当前默认宠物 ID，用于上传照片和创建 AI 任务。 */
+  readonly petId: string;
   /** 关闭 Pet Studio 并返回桌宠主页。 */
   readonly onClose: () => void;
   /** 完成本地确认后返回桌宠主页。 */
@@ -18,23 +19,13 @@ interface PetStudioViewProps {
  *
  * 前置条件：由桌宠主页进入。后置条件：用户可完成本地图片校验和手动 Pet DNA 确认。
  */
-export function PetStudioView({ onClose, onDone }: PetStudioViewProps) {
+export function PetStudioView({ petId, onClose, onDone }: PetStudioViewProps) {
   const draft = usePetStudioDraft();
-  const [step, setStep] = useState<PetStudioStep>('input');
+  const flow = usePetStudioAiFlow({ petId, draft, onDone });
 
-  useEffect(() => {
-    if (step !== 'ritual') {
-      return undefined;
-    }
-    const timeoutId = window.setTimeout(() => setStep('confirm'), 1200);
-    return () => window.clearTimeout(timeoutId);
-  }, [step]);
-
-  const handleContinue = () => {
-    if (draft.blockingMessage) {
-      return;
-    }
-    setStep('ritual');
+  const handleClose = () => {
+    flow.cancelFlow();
+    onClose();
   };
 
   return (
@@ -44,12 +35,12 @@ export function PetStudioView({ onClose, onDone }: PetStudioViewProps) {
           <span>Pet Studio</span>
           <h2>创建它的数字身份</h2>
         </div>
-        <button type="button" aria-label="关闭 Pet Studio" onClick={onClose}>
+        <button type="button" aria-label="关闭 Pet Studio" onClick={handleClose}>
           <X size={18} />
         </button>
       </header>
 
-      {step === 'input' ? (
+      {flow.step === 'input' ? (
         <section className="pet-studio-content">
           <section className="pet-studio-form" aria-label="宠物基础信息">
             <div className="pet-studio-panel-header">
@@ -101,30 +92,60 @@ export function PetStudioView({ onClose, onDone }: PetStudioViewProps) {
             <button
               type="button"
               className="pet-studio-primary"
-              disabled={Boolean(draft.blockingMessage)}
-              onClick={handleContinue}
+              disabled={Boolean(draft.blockingMessage) || flow.isSubmitting || petId.length === 0}
+              onClick={flow.handleContinue}
             >
-              继续
+              {flow.isSubmitting ? '处理中' : '继续'}
             </button>
           </div>
         </section>
       ) : null}
 
-      {step === 'ritual' ? (
+      {flow.step === 'uploading' || flow.step === 'analyzing' ? (
         <section className="pet-studio-ritual" aria-live="polite">
           <Sparkles size={38} />
-          <h3>正在整理它的数字身份</h3>
-          <p>先根据你填写的信息和照片生成一份可编辑草稿。</p>
+          <h3>{flow.step === 'uploading' ? '正在保存照片' : '正在识别它的数字身份'}</h3>
+          <p>
+            {flow.step === 'uploading'
+              ? '照片会先保存为资源，再创建 Pet DNA 分析任务。'
+              : 'AI 正在整理一份可编辑草稿，不会直接生成可动桌宠。'}
+          </p>
         </section>
       ) : null}
 
-      {step === 'confirm' ? (
+      {flow.step === 'ai-failed' ? (
+        <section className="pet-studio-ritual" aria-live="polite">
+          <Sparkles size={38} />
+          <h3>先用手动草稿继续</h3>
+          <p>{flow.flowMessage ?? '我没能看清它的样子，你可以先手动填写，之后再重新生成。'}</p>
+          <div className="pet-studio-actions">
+            <button type="button" className="pet-studio-secondary" onClick={handleClose}>
+              取消
+            </button>
+            <button
+              type="button"
+              className="pet-studio-primary"
+              onClick={flow.handleManualFallback}
+            >
+              手动创建
+            </button>
+          </div>
+        </section>
+      ) : null}
+
+      {flow.step === 'confirm' ? (
         <PetDnaManualForm
           dna={draft.dna}
-          onBack={() => setStep('input')}
+          onBack={() => flow.setStep('input')}
           onChange={draft.updateDna}
-          onConfirm={onDone}
+          onConfirm={flow.handleConfirm}
         />
+      ) : null}
+
+      {flow.flowMessage && flow.step === 'confirm' ? (
+        <div className="pet-studio-error" role="alert">
+          {flow.flowMessage}
+        </div>
       ) : null}
     </main>
   );

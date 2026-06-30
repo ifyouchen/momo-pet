@@ -1,5 +1,6 @@
 import { ImagePlus, Trash2 } from 'lucide-react';
-import type { ChangeEvent } from 'react';
+import { useState } from 'react';
+import type { ChangeEvent, DragEvent } from 'react';
 import type { PetStudioPhoto, PhotoRole } from '../types';
 
 const REFERENCE_ROLES: readonly PhotoRole[] = ['FRONT', 'SIDE', 'BACK', 'DETAIL', 'OTHER'];
@@ -8,7 +9,7 @@ interface PhotoUploadPanelProps {
   /** 当前已选择的图片草稿。 */
   readonly photos: readonly PetStudioPhoto[];
   /** 添加用户选择的本地图片。 */
-  readonly onAddPhotos: (files: readonly File[]) => void;
+  readonly onAddPhotos: (files: readonly File[]) => Promise<void>;
   /** 删除指定图片。 */
   readonly onRemovePhoto: (photoId: string) => void;
   /** 调整参考图角色。 */
@@ -26,9 +27,28 @@ export function PhotoUploadPanel({
   onRemovePhoto,
   onUpdateRole,
 }: PhotoUploadPanelProps) {
+  const [isDragging, setIsDragging] = useState(false);
+
   const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
-    onAddPhotos(Array.from(event.target.files ?? []));
+    void onAddPhotos(Array.from(event.target.files ?? []));
     event.target.value = '';
+  };
+
+  const handleDragOver = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (event: DragEvent<HTMLLabelElement>) => {
+    if (!event.currentTarget.contains(event.relatedTarget as Node | null)) {
+      setIsDragging(false);
+    }
+  };
+
+  const handleDrop = (event: DragEvent<HTMLLabelElement>) => {
+    event.preventDefault();
+    setIsDragging(false);
+    void onAddPhotos(Array.from(event.dataTransfer.files));
   };
 
   return (
@@ -38,7 +58,12 @@ export function PhotoUploadPanel({
         <span>1 张主图，最多 4 张参考图</span>
       </div>
 
-      <label className="photo-upload-dropzone">
+      <label
+        className={`photo-upload-dropzone${isDragging ? ' is-dragging' : ''}`}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <ImagePlus size={24} />
         <strong>拖拽或点击选择图片</strong>
         <span>JPG / PNG / WebP，单张不超过 10 MB</span>

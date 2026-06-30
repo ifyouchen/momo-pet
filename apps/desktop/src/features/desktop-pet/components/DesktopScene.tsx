@@ -44,6 +44,7 @@ export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
         ) : null}
         {isPetStudioOpen ? (
           <PetStudioView
+            petId={model.pet?.petId ?? ''}
             onClose={() => setIsPetStudioOpen(false)}
             onDone={() => setIsPetStudioOpen(false)}
           />

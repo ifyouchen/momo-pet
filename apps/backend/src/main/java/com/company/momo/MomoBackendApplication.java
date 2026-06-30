@@ -2,6 +2,7 @@ package com.company.momo;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 /**
  * Project Momo 后端启动入口，负责装配 Spring Boot 运行时。
@@ -10,6 +11,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * 接口。可能抛出运行时启动异常，例如端口占用或配置错误。</p>
  */
 @SpringBootApplication
+@EnableScheduling
 public class MomoBackendApplication {
 
     /**

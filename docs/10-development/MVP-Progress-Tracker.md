@@ -18,8 +18,8 @@
 | Sprint 1 | 默认宠物闭环               | Review      | No                      |
 | Sprint 2 | Windows/macOS 桌面端运行时 | Review      | macOS Yes / Windows Yes |
 | Sprint 3 | 宠物交互模式               | Review      | Yes                     |
-| Sprint 4 | Pet Studio                 | In Progress | No                      |
-| Sprint 5 | AI Pet DNA 任务            | Not Started | No                      |
+| Sprint 4 | Pet Studio                 | Review      | No                      |
+| Sprint 5 | AI Pet DNA 任务            | Review      | No                      |
 | Sprint 6 | 基础聊天                   | Not Started | No                      |
 | Sprint 7 | 后台 MVP                   | Not Started | No                      |
 | Sprint 8 | Beta 验收                  | Not Started | No                      |
@@ -78,28 +78,28 @@
 
 ## Sprint 4：Pet Studio
 
-| 任务           | 状态        | 依赖           | 验收标准                                         |
-| -------------- | ----------- | -------------- | ------------------------------------------------ |
-| 创建宠物页面   | In Progress | UI 基础        | 可填写名称和类型                                 |
-| 主图上传       | In Progress | UI 基础        | 必须选择 1 张主图并完成格式、大小校验            |
-| 参考图上传     | In Progress | 主图上传       | 可选上传最多 4 张参考图                          |
-| 图片顺序与角色 | In Progress | 参考图上传     | 可区分 PRIMARY、FRONT、SIDE、BACK、DETAIL、OTHER |
-| 多图错误提示   | In Progress | 图片校验       | 超限、格式错误、过大时有明确提示                 |
-| AI 分析中页面  | In Progress | UI 基础        | 有生成仪式感                                     |
-| Pet DNA 确认页 | In Progress | Pet DNA Schema | 可编辑字段                                       |
-| 手动创建流程   | In Progress | Pet DNA 确认页 | 不依赖 AI 也能完成                               |
+| 任务           | 状态   | 依赖           | 验收标准                                         |
+| -------------- | ------ | -------------- | ------------------------------------------------ |
+| 创建宠物页面   | Review | UI 基础        | 可填写名称和类型                                 |
+| 主图上传       | Review | UI 基础        | 必须选择 1 张主图并完成格式、大小校验            |
+| 参考图上传     | Review | 主图上传       | 可选上传最多 4 张参考图                          |
+| 图片顺序与角色 | Review | 参考图上传     | 可区分 PRIMARY、FRONT、SIDE、BACK、DETAIL、OTHER |
+| 多图错误提示   | Review | 图片校验       | 超限、格式错误、过大时有明确提示                 |
+| AI 分析中页面  | Review | UI 基础        | 有生成仪式感                                     |
+| Pet DNA 确认页 | Review | Pet DNA Schema | 可编辑字段                                       |
+| 手动创建流程   | Review | Pet DNA 确认页 | 不依赖 AI 也能完成                               |
 
 ## Sprint 5：AI Pet DNA 任务
 
-| 任务           | 状态        | 依赖         | 验收标准                                                        |
-| -------------- | ----------- | ------------ | --------------------------------------------------------------- |
-| 图片上传接口   | Not Started | asset 上下文 | 返回 assetId                                                    |
-| 图片角色保存   | Not Started | 图片上传接口 | 保存 photoRole 并校验所属 petId                                 |
-| AI 任务创建    | Not Started | ai 上下文    | 接收 primaryPhotoAssetId 和 referencePhotoAssetIds，返回 taskId |
-| AI 任务查询    | Not Started | ai 上下文    | 返回状态                                                        |
-| Pet DNA 草稿   | Not Started | AI Gateway   | 符合 Schema                                                     |
-| 多图一致性提醒 | Not Started | AI Gateway   | 可展示 mismatchWarning 和低置信度字段                           |
-| 失败降级       | Not Started | 任务状态     | 可手动创建                                                      |
+| 任务           | 状态   | 依赖         | 验收标准                                                        |
+| -------------- | ------ | ------------ | --------------------------------------------------------------- |
+| 图片上传接口   | Review | asset 上下文 | 返回 assetId                                                    |
+| 图片角色保存   | Review | 图片上传接口 | 保存 photoRole 并校验所属 petId                                 |
+| AI 任务创建    | Review | ai 上下文    | 接收 primaryPhotoAssetId 和 referencePhotoAssetIds，返回 taskId |
+| AI 任务查询    | Review | ai 上下文    | 返回状态                                                        |
+| Pet DNA 草稿   | Review | AI Gateway   | 符合 Schema                                                     |
+| 多图一致性提醒 | Review | AI Gateway   | 可展示 mismatchWarning 和低置信度字段                           |
+| 失败降级       | Review | 任务状态     | 可手动创建                                                      |
 
 ## Sprint 6：基础聊天
 
