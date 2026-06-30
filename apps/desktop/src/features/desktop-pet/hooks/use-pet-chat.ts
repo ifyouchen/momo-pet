@@ -2,6 +2,8 @@ import type { ChatMessage, PetState } from '@momo/shared';
 import { useCallback, useEffect, useState } from 'react';
 import { getChatMessages, sendChatMessage } from '../api/chat-api';
 
+const CHAT_SYNC_CHANNEL_NAME = 'momo-pet-chat-sync';
+
 interface UsePetChatOptions {
   /** 当前宠物 ID。 */
   readonly petId: string | null;
@@ -20,6 +22,13 @@ export interface PetChatModel {
   readonly sendMessage: () => Promise<void>;
 }
 
+interface ChatSyncPayload {
+  /** 被同步的宠物 ID，避免多宠物或历史窗口串消息。 */
+  readonly petId: string;
+  /** 发送动作产生的新消息，包含用户消息和宠物回复。 */
+  readonly messages: readonly ChatMessage[];
+}
+
 /**
  * 管理 Sprint 6 基础聊天面板状态。
  *
@@ -32,6 +41,20 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSending, setIsSending] = useState(false);
   const [latestSentPetReplyId, setLatestSentPetReplyId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!petId || typeof BroadcastChannel === 'undefined') {
+      return undefined;
+    }
+    const channel = new BroadcastChannel(CHAT_SYNC_CHANNEL_NAME);
+    channel.onmessage = (event: MessageEvent<ChatSyncPayload>) => {
+      if (event.data.petId !== petId) {
+        return;
+      }
+      setMessages((currentMessages) => mergeMessages(currentMessages, event.data.messages));
+    };
+    return () => channel.close();
+  }, [petId]);
 
   useEffect(() => {
     if (!petId) {
@@ -72,8 +95,7 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
       const response = await sendChatMessage(petId, { content });
       const now = new Date().toISOString();
       const petReplyMessageId = `${response.messageId}-reply`;
-      setMessages((currentMessages) => [
-        ...currentMessages,
+      const newMessages: readonly ChatMessage[] = [
         { messageId: response.messageId, role: 'USER', content, createdAt: now },
         {
           messageId: petReplyMessageId,
@@ -81,7 +103,9 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
           content: response.reply,
           createdAt: now,
         },
-      ]);
+      ];
+      setMessages((currentMessages) => mergeMessages(currentMessages, newMessages));
+      broadcastChatMessages(petId, newMessages);
       setLatestSentPetReplyId(petReplyMessageId);
       setDraft('');
       onStateChange(response.state);
@@ -109,4 +133,26 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : '聊天失败了，可以稍后再试。';
+}
+
+function mergeMessages(
+  currentMessages: readonly ChatMessage[],
+  incomingMessages: readonly ChatMessage[],
+): readonly ChatMessage[] {
+  const currentMessageIds = new Set(currentMessages.map((message) => message.messageId));
+  const uniqueIncomingMessages = incomingMessages.filter(
+    (message) => !currentMessageIds.has(message.messageId),
+  );
+  return uniqueIncomingMessages.length > 0
+    ? [...currentMessages, ...uniqueIncomingMessages]
+    : currentMessages;
+}
+
+function broadcastChatMessages(petId: string, messages: readonly ChatMessage[]): void {
+  if (typeof BroadcastChannel === 'undefined') {
+    return;
+  }
+  const channel = new BroadcastChannel(CHAT_SYNC_CHANNEL_NAME);
+  channel.postMessage({ petId, messages } satisfies ChatSyncPayload);
+  channel.close();
 }
