@@ -184,3 +184,42 @@ export interface ConfirmPetDnaResponse {
   petId: string;
   version: number;
 }
+
+/**
+ * Chat message role used by Sprint 6 basic chat APIs.
+ */
+export type ChatMessageRole = 'USER' | 'PET';
+
+/**
+ * Chat message returned by recent chat APIs.
+ */
+export interface ChatMessage {
+  messageId: string;
+  role: ChatMessageRole;
+  content: string;
+  createdAt: string;
+}
+
+/**
+ * Send chat message request.
+ */
+export interface SendChatMessageRequest {
+  content: string;
+}
+
+/**
+ * Send chat message response.
+ */
+export interface SendChatMessageResponse {
+  messageId: string;
+  reply: string;
+  state: PetState;
+  fallback: boolean;
+}
+
+/**
+ * Recent chat messages response.
+ */
+export interface ChatMessagesResponse {
+  items: ChatMessage[];
+}

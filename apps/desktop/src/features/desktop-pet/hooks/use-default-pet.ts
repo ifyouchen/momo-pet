@@ -22,6 +22,7 @@ export interface DefaultPetModel {
   readonly statusText: string;
   readonly canCare: boolean;
   readonly handleCareAction: (action: CareAction) => Promise<void>;
+  readonly handleStateChange: (state: PetState) => void;
 }
 
 /**
@@ -75,6 +76,13 @@ export function useDefaultPet(): DefaultPetModel {
     [clearVisualTimers],
   );
 
+  const scheduleChatVisualAction = useCallback(() => {
+    clearVisualTimers();
+    setVisualAction('happy');
+    const idleTimer = window.setTimeout(() => setVisualAction('idle'), 1400);
+    visualTimersRef.current = [idleTimer];
+  }, [clearVisualTimers]);
+
   const bootstrapDefaultPet = useCallback(async () => {
     setIsBootstrapping(true);
     try {
@@ -116,6 +124,18 @@ export function useDefaultPet(): DefaultPetModel {
     [activeAction, pet, resetVisualAction, scheduleVisualAction],
   );
 
+  const handleStateChange = useCallback(
+    (nextState: PetState) => {
+      setState((previousState) => {
+        setStateDeltas(getStateDeltas(previousState, nextState));
+        return nextState;
+      });
+      setFeedback({ tone: 'success', message: '我听见你啦。' });
+      scheduleChatVisualAction();
+    },
+    [scheduleChatVisualAction],
+  );
+
   useEffect(() => {
     void bootstrapDefaultPet();
   }, [bootstrapDefaultPet]);
@@ -141,6 +161,7 @@ export function useDefaultPet(): DefaultPetModel {
     statusText,
     canCare,
     handleCareAction,
+    handleStateChange,
   };
 }
 

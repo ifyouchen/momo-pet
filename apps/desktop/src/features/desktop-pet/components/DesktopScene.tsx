@@ -1,8 +1,10 @@
 import { useCallback, useState } from 'react';
 import type { CareAction } from '../types';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
+import { usePetChat } from '../hooks/use-pet-chat';
 import { PetStudioView } from '../../pet-studio/components/PetStudioView';
 import { ActionDock } from './ActionDock';
+import { ChatPanel } from './ChatPanel';
 import { MomoPetAvatar } from './MomoPetAvatar';
 import { PetInteractionLayer } from './PetInteractionLayer';
 import { SpeechBubble } from './SpeechBubble';
@@ -25,8 +27,13 @@ interface DesktopSceneProps {
 export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
   const petName = model.pet?.name ?? 'Momo Pet';
   const [isPetStudioOpen, setIsPetStudioOpen] = useState(false);
+  const [isChatOpen, setIsChatOpen] = useState(false);
   const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
   const [interactionHint, setInteractionHint] = useState<string | null>(null);
+  const chat = usePetChat({
+    petId: model.pet?.petId ?? null,
+    onStateChange: model.handleStateChange,
+  });
   const cancelInteractionMode = useCallback(() => {
     setInteractionHint(null);
     setActiveInteractionMode(null);
@@ -80,10 +87,14 @@ export function DesktopScene({ model, runtimeWarning }: DesktopSceneProps) {
             </section>
 
             <StatePanel isLoading={model.isBootstrapping} state={model.state} />
+            {isChatOpen ? (
+              <ChatPanel petName={petName} chat={chat} onClose={() => setIsChatOpen(false)} />
+            ) : null}
             <ActionDock
               activeAction={model.activeAction}
               activeInteractionMode={activeInteractionMode}
               canCare={model.canCare}
+              onOpenChat={() => setIsChatOpen(true)}
               onOpenPetStudio={() => setIsPetStudioOpen(true)}
               onSelectInteractionMode={setActiveInteractionMode}
             />

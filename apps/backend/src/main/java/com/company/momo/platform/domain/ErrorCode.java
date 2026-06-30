@@ -111,6 +111,11 @@ public enum ErrorCode {
     PET_DNA_INVALID("Pet DNA 信息不完整"),
 
     /**
+     * 用户聊天消息超过 MVP 支持长度。
+     */
+    CHAT_MESSAGE_TOO_LONG("这句话有点长，先拆成短一点的几句吧"),
+
+    /**
      * 系统出现未预期异常。
      */
     INTERNAL_ERROR("系统异常");

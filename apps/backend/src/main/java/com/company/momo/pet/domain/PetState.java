@@ -97,6 +97,16 @@ public final class PetState {
         touchUpdatedAt();
     }
 
+    /**
+     * 聊天并应用 MVP 状态变化。
+     */
+    public void chat() {
+        intimacy = clamp(intimacy + 2);
+        mood = clamp(mood + 2);
+        gainExperience(6);
+        touchUpdatedAt();
+    }
+
     private void gainExperience(int delta) {
         experience += delta;
         level = Math.max(1, experience / 100 + 1);

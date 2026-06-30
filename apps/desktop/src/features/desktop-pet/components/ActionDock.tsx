@@ -12,6 +12,8 @@ interface ActionDockProps {
   readonly onSelectInteractionMode: (action: CareAction) => void;
   /** 打开 Pet Studio 创建流程。 */
   readonly onOpenPetStudio: () => void;
+  /** 打开聊天面板。 */
+  readonly onOpenChat: () => void;
 }
 
 const ACTIONS: Array<{
@@ -37,6 +39,7 @@ export function ActionDock({
   canCare,
   onSelectInteractionMode,
   onOpenPetStudio,
+  onOpenChat,
 }: ActionDockProps) {
   return (
     <div className="action-dock" aria-label="MVP pet actions">
@@ -61,9 +64,10 @@ export function ActionDock({
       <button
         type="button"
         className="dock-button dock-button-muted"
-        aria-label="聊天功能后续开放"
-        disabled
-        title="聊天功能后续开放"
+        aria-label="打开聊天"
+        disabled={!canCare}
+        title="打开聊天"
+        onClick={onOpenChat}
       >
         <MessageCircle size={18} />
         <span>聊天</span>

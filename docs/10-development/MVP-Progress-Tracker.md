@@ -20,7 +20,7 @@
 | Sprint 3 | 宠物交互模式               | Review      | Yes                     |
 | Sprint 4 | Pet Studio                 | Review      | No                      |
 | Sprint 5 | AI Pet DNA 任务            | Done        | Yes                     |
-| Sprint 6 | 基础聊天                   | Not Started | No                      |
+| Sprint 6 | 基础聊天                   | Review      | No                      |
 | Sprint 7 | 后台 MVP                   | Not Started | No                      |
 | Sprint 8 | Beta 验收                  | Not Started | No                      |
 
@@ -105,10 +105,10 @@
 
 | 任务         | 状态        | 依赖        | 验收标准         |
 | ------------ | ----------- | ----------- | ---------------- |
-| Chat API     | Not Started | chat 上下文 | 可保存消息       |
-| Chat Panel   | Not Started | UI          | 可发送和展示回复 |
-| 宠物口吻回复 | Not Started | AI Gateway  | 回复符合 Pet DNA |
-| AI 失败降级  | Not Started | Chat API    | 不白屏，输入保留 |
+| Chat API     | Review | chat 上下文 | 可保存消息       |
+| Chat Panel   | Review | UI          | 可发送和展示回复 |
+| 宠物口吻回复 | Review | AI Gateway  | 回复符合 Pet DNA |
+| AI 失败降级  | Review | Chat API    | 不白屏，输入保留 |
 
 ## Sprint 7：后台 MVP
 
