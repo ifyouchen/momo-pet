@@ -5,7 +5,10 @@ import com.company.momo.pet.domain.PetId;
 import com.company.momo.pet.domain.PetName;
 import com.company.momo.pet.domain.PetRepository;
 import com.company.momo.pet.domain.PetStatus;
+import com.company.momo.pet.domain.Species;
 import com.company.momo.pet.domain.UserId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.util.Optional;
@@ -41,6 +44,40 @@ class PetPersistenceAdapter implements PetRepository {
     @Override
     public void save(Pet pet) {
         petJpaRepository.save(toEntity(pet));
+    }
+
+    /**
+     * 按物种和状态分页查询宠物。
+     *
+     * @param species 物种过滤，可空
+     * @param status 状态过滤，可空
+     * @param pageable 分页
+     * @return 宠物分页
+     */
+    @Override
+    public Page<Pet> findPets(Species species, PetStatus status, Pageable pageable) {
+        Page<PetJpaEntity> page;
+        if (species != null && status != null) {
+            page = petJpaRepository.findBySpeciesAndStatus(species, status, pageable);
+        } else if (species != null) {
+            page = petJpaRepository.findBySpecies(species, pageable);
+        } else if (status != null) {
+            page = petJpaRepository.findByStatus(status, pageable);
+        } else {
+            page = petJpaRepository.findAll(pageable);
+        }
+        return page.map(this::toDomain);
+    }
+
+    /**
+     * 按状态统计宠物数量。
+     *
+     * @param status 宠物状态
+     * @return 数量
+     */
+    @Override
+    public long countByStatus(PetStatus status) {
+        return petJpaRepository.countByStatus(status);
     }
 
     private Pet toDomain(PetJpaEntity entity) {

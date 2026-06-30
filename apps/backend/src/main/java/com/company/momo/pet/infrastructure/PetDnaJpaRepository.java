@@ -19,4 +19,12 @@ interface PetDnaJpaRepository extends JpaRepository<PetDnaJpaEntity, String> {
      */
     @Query("select max(d.version) from PetDnaJpaEntity d where d.petId = :petId")
     Optional<Integer> findMaxVersionByPetId(@Param("petId") String petId);
+
+    /**
+     * 查询指定宠物的最新 Pet DNA。
+     *
+     * @param petId 宠物 ID
+     * @return 最新 Pet DNA 实体
+     */
+    Optional<PetDnaJpaEntity> findFirstByPetIdOrderByVersionDesc(String petId);
 }

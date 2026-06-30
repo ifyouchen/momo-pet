@@ -54,4 +54,32 @@ class PetDnaJpaEntity {
         this.createdAt = confirmedAt;
         this.confirmedAt = confirmedAt;
     }
+
+    String id() {
+        return id;
+    }
+
+    String petId() {
+        return petId;
+    }
+
+    int version() {
+        return version;
+    }
+
+    PetDnaSource source() {
+        return source;
+    }
+
+    String dnaPayload() {
+        return dnaPayload;
+    }
+
+    Instant createdAt() {
+        return createdAt;
+    }
+
+    Instant confirmedAt() {
+        return confirmedAt;
+    }
 }

@@ -4,9 +4,13 @@ import com.company.momo.ai.domain.AiGenerationTask;
 import com.company.momo.ai.domain.AiGenerationTaskRepository;
 import com.company.momo.ai.domain.AiTaskId;
 import com.company.momo.ai.domain.AiTaskStatus;
+import com.company.momo.ai.domain.AiTaskType;
 import com.company.momo.pet.domain.PetId;
 import com.company.momo.pet.domain.UserId;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -58,6 +62,43 @@ class AiGenerationTaskPersistenceAdapter implements AiGenerationTaskRepository {
             .stream()
             .map(this::toDomain)
             .toList();
+    }
+
+    /**
+     * 按状态和类型分页查询任务。
+     *
+     * @param status 状态过滤，可空
+     * @param taskType 类型过滤，可空
+     * @param page 页码
+     * @param size 每页大小
+     * @return 任务分页
+     */
+    @Override
+    public TaskPage findTasks(AiTaskStatus status, AiTaskType taskType, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<AiGenerationTaskJpaEntity> result;
+        if (status != null && taskType != null) {
+            result = aiGenerationTaskJpaRepository.findByStatusAndTaskType(status, taskType, pageable);
+        } else if (status != null) {
+            result = aiGenerationTaskJpaRepository.findByStatus(status, pageable);
+        } else if (taskType != null) {
+            result = aiGenerationTaskJpaRepository.findByTaskType(taskType, pageable);
+        } else {
+            result = aiGenerationTaskJpaRepository.findAll(pageable);
+        }
+        List<AiGenerationTask> items = result.getContent().stream().map(this::toDomain).toList();
+        return new TaskPage(items, result.getTotalElements(), page, size);
+    }
+
+    /**
+     * 按状态统计任务数量。
+     *
+     * @param status 任务状态
+     * @return 数量
+     */
+    @Override
+    public long countByStatus(AiTaskStatus status) {
+        return aiGenerationTaskJpaRepository.countByStatus(status);
     }
 
     private AiGenerationTask toDomain(AiGenerationTaskJpaEntity entity) {

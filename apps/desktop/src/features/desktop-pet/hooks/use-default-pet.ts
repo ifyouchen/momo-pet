@@ -65,13 +65,13 @@ export function useDefaultPet(): DefaultPetModel {
   const scheduleVisualAction = useCallback(
     (action: CareAction) => {
       clearVisualTimers();
-      setVisualAction(getPrimaryVisualAction(action));
-      const secondaryTimer = window.setTimeout(
-        () => setVisualAction(getSecondaryVisualAction(action)),
-        900,
+      const sequence = getVisualActionSequence(action);
+      setVisualAction(sequence[0].action);
+      visualTimersRef.current = sequence.slice(1).map((step) =>
+        window.setTimeout(() => {
+          setVisualAction(step.action);
+        }, step.atMs),
       );
-      const idleTimer = window.setTimeout(() => setVisualAction('idle'), 1800);
-      visualTimersRef.current = [secondaryTimer, idleTimer];
     },
     [clearVisualTimers],
   );
@@ -206,22 +206,38 @@ function createDelta(label: string, value: number): StateDelta | null {
 
 function getSuccessMessage(action: CareAction): string {
   if (action === 'feed') {
-    return '小鱼干补给成功。';
+    return '吃到啦，谢谢你。';
   }
   if (action === 'touch') {
-    return '摸摸真舒服。';
+    return '舒服多啦。';
   }
-  return '已经清理干净啦。';
+  return '干净清爽了。';
 }
 
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : '连接失败，请确认后端已启动。';
 }
 
-function getPrimaryVisualAction(action: CareAction): PetVisualAction {
-  return action === 'feed' ? 'eat' : 'happy';
-}
-
-function getSecondaryVisualAction(action: CareAction): PetVisualAction {
-  return action === 'feed' ? 'happy' : 'idle';
+function getVisualActionSequence(
+  action: CareAction,
+): readonly { readonly action: PetVisualAction; readonly atMs: number }[] {
+  if (action === 'feed') {
+    return [
+      { action: 'low-head', atMs: 0 },
+      { action: 'eat', atMs: 360 },
+      { action: 'happy', atMs: 1450 },
+      { action: 'idle', atMs: 2200 },
+    ];
+  }
+  if (action === 'clean') {
+    return [
+      { action: 'grooming', atMs: 0 },
+      { action: 'happy', atMs: 1800 },
+      { action: 'idle', atMs: 2400 },
+    ];
+  }
+  return [
+    { action: 'happy', atMs: 0 },
+    { action: 'idle', atMs: 1700 },
+  ];
 }

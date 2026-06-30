@@ -1,4 +1,5 @@
 use crate::{position_store, runtime_error::RuntimeError};
+use serde::Serialize;
 use tauri::{
     menu::{Menu, MenuItem},
     tray::{MouseButton, MouseButtonState, TrayIconBuilder, TrayIconEvent},
@@ -9,6 +10,28 @@ const PET_WINDOW_LABEL: &str = "pet";
 const HOME_WINDOW_LABEL: &str = "home";
 const PET_WINDOW_WIDTH: f64 = 420.0;
 const PET_WINDOW_HEIGHT: f64 = 520.0;
+
+/// Current pet window placement and monitor bounds used by the frontend life engine.
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PetWindowPlacement {
+    /// Current physical x coordinate.
+    pub x: i32,
+    /// Current physical y coordinate.
+    pub y: i32,
+    /// Current physical window width.
+    pub width: u32,
+    /// Current physical window height.
+    pub height: u32,
+    /// Current monitor left coordinate.
+    pub monitor_x: i32,
+    /// Current monitor top coordinate.
+    pub monitor_y: i32,
+    /// Current monitor width.
+    pub monitor_width: u32,
+    /// Current monitor height.
+    pub monitor_height: u32,
+}
 /// Initializes desktop runtime window behavior.
 ///
 /// Precondition: the Tauri app has already loaded configured windows. Postcondition: the pet
@@ -109,6 +132,62 @@ pub fn hide_all_windows_to_tray(app: AppHandle) -> Result<(), RuntimeError> {
 #[tauri::command]
 pub fn start_pet_window_drag(window: WebviewWindow) -> Result<(), RuntimeError> {
     window.start_dragging()?;
+    Ok(())
+}
+
+/// Returns pet window placement and active monitor bounds for autonomous movement.
+///
+/// Precondition: called from the pet window webview. Postcondition: returns current placement
+/// without changing native window state.
+#[tauri::command]
+pub fn get_pet_window_placement(window: WebviewWindow) -> Result<PetWindowPlacement, RuntimeError> {
+    if window.label() != PET_WINDOW_LABEL {
+        return Err(RuntimeError::new(
+            "PET_WINDOW_REQUIRED",
+            "pet window placement can only be read from the pet window",
+        ));
+    }
+    let position = window.outer_position()?;
+    let size = window.outer_size()?;
+    let monitor = window
+        .current_monitor()?
+        .or_else(|| window.primary_monitor().ok().flatten())
+        .ok_or_else(|| RuntimeError::new("MONITOR_NOT_FOUND", "monitor is not available"))?;
+    let monitor_position = monitor.position();
+    let monitor_size = monitor.size();
+    Ok(PetWindowPlacement {
+        x: position.x,
+        y: position.y,
+        width: size.width,
+        height: size.height,
+        monitor_x: monitor_position.x,
+        monitor_y: monitor_position.y,
+        monitor_width: monitor_size.width,
+        monitor_height: monitor_size.height,
+    })
+}
+
+/// Moves the pet window to a bounded physical position.
+///
+/// Precondition: x and y come from the frontend life engine. Postcondition: the pet window is moved
+/// and the new position is saved for restart restore.
+#[tauri::command]
+pub fn set_pet_window_position(
+    app: AppHandle,
+    window: WebviewWindow,
+    x: i32,
+    y: i32,
+) -> Result<(), RuntimeError> {
+    if window.label() != PET_WINDOW_LABEL {
+        return Err(RuntimeError::new(
+            "PET_WINDOW_REQUIRED",
+            "pet window position can only be set from the pet window",
+        ));
+    }
+    let position = PhysicalPosition::new(x, y);
+    window.set_position(position)?;
+    let size = window.outer_size()?;
+    position_store::save_pet_window_position(&app, position, size)?;
     Ok(())
 }
 

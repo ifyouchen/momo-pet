@@ -2,6 +2,25 @@ import { invoke, isTauri } from '@tauri-apps/api/core';
 
 export type RuntimeWindowMode = 'pet-window' | 'home-window';
 
+export interface PetWindowPlacement {
+  /** Current native window x coordinate. */
+  readonly x: number;
+  /** Current native window y coordinate. */
+  readonly y: number;
+  /** Current native window width. */
+  readonly width: number;
+  /** Current native window height. */
+  readonly height: number;
+  /** Current monitor left coordinate. */
+  readonly monitorX: number;
+  /** Current monitor top coordinate. */
+  readonly monitorY: number;
+  /** Current monitor width. */
+  readonly monitorWidth: number;
+  /** Current monitor height. */
+  readonly monitorHeight: number;
+}
+
 /**
  * Returns whether the current UI is running inside Tauri.
  *
@@ -39,6 +58,32 @@ export async function startPetWindowDrag(): Promise<void> {
     return;
   }
   await invoke('start_pet_window_drag');
+}
+
+/**
+ * Reads the native pet window placement for autonomous movement.
+ *
+ * 前置条件：当前运行在 Tauri pet 窗口内。后置条件：浏览器预览返回 null，Tauri 返回窗口和屏幕边界。
+ * @throws Tauri command 失败时向调用方抛出异常。
+ */
+export async function getPetWindowPlacement(): Promise<PetWindowPlacement | null> {
+  if (!isDesktopRuntime()) {
+    return null;
+  }
+  return invoke<PetWindowPlacement>('get_pet_window_placement');
+}
+
+/**
+ * Moves the native pet window to a bounded desktop position.
+ *
+ * 前置条件：当前运行在 Tauri pet 窗口内。后置条件：浏览器预览无操作，Tauri 移动窗口。
+ * @throws Tauri command 失败时向调用方抛出异常。
+ */
+export async function setPetWindowPosition(x: number, y: number): Promise<void> {
+  if (!isDesktopRuntime()) {
+    return;
+  }
+  await invoke('set_pet_window_position', { x: Math.round(x), y: Math.round(y) });
 }
 
 /**

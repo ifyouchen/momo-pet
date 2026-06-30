@@ -37,16 +37,23 @@ body {
   gap: 8px;
 }
 
-.sidebar a {
+.sidebar-link {
   border-radius: 8px;
   padding: 10px 12px;
   color: #405066;
   text-decoration: none;
+  display: block;
 }
 
-.sidebar a:hover {
+.sidebar-link:hover {
   background: #eef4ff;
   color: #1d4ed8;
+}
+
+.sidebar-link-active {
+  background: #eef4ff;
+  color: #1d4ed8;
+  font-weight: 600;
 }
 
 .workspace {
@@ -70,6 +77,11 @@ body {
   color: #64748b;
 }
 
+.page-header-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .environment {
   border: 1px solid #bfd0ea;
   border-radius: 999px;
@@ -79,10 +91,32 @@ body {
   font-size: 13px;
 }
 
+button {
+  font: inherit;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 6px 12px;
+  cursor: pointer;
+  color: #1f2937;
+}
+
+button:hover:not(:disabled) {
+  background: #eef4ff;
+  border-color: #1d4ed8;
+  color: #1d4ed8;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 16px;
+  margin-bottom: 28px;
 }
 
 .metric-card {
@@ -111,4 +145,187 @@ body {
 
 .metric-card small {
   color: #8291a7;
+}
+
+.dashboard-section {
+  margin-bottom: 28px;
+}
+
+.dashboard-section h2 {
+  font-size: 18px;
+  margin: 0 0 12px;
+}
+
+.filter-bar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+.filter-bar label {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.filter-bar select,
+.filter-bar input {
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  padding: 6px 10px;
+  background: #ffffff;
+  color: #1f2937;
+  font: inherit;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border: 1px solid #dce3ef;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.data-table th,
+.data-table td {
+  text-align: left;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e2e8f0;
+  font-size: 14px;
+}
+
+.data-table th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 600;
+}
+
+.data-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table-row-clickable {
+  cursor: pointer;
+}
+
+.data-table-row-clickable:hover {
+  background: #eef4ff;
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 16px;
+  color: #64748b;
+  font-size: 14px;
+}
+
+.tab-bar {
+  display: flex;
+  gap: 4px;
+  border-bottom: 1px solid #dce3ef;
+  margin-bottom: 20px;
+}
+
+.tab {
+  border: none;
+  background: transparent;
+  padding: 10px 16px;
+  border-radius: 0;
+  color: #475569;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+}
+
+.tab-active {
+  color: #1d4ed8;
+  border-bottom-color: #1d4ed8;
+  font-weight: 600;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.detail-card {
+  background: #ffffff;
+  border: 1px solid #dce3ef;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.detail-card h3 {
+  margin: 0 0 12px;
+  font-size: 16px;
+}
+
+.detail-card h4 {
+  margin: 16px 0 8px;
+  font-size: 14px;
+  color: #475569;
+}
+
+.detail-card dl {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  row-gap: 6px;
+  column-gap: 12px;
+  margin: 0;
+  font-size: 14px;
+}
+
+.detail-card dt {
+  color: #64748b;
+}
+
+.detail-card dd {
+  margin: 0;
+  color: #1f2937;
+  word-break: break-all;
+}
+
+.json-block {
+  background: #0f172a;
+  color: #e2e8f0;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  overflow: auto;
+  max-height: 360px;
+}
+
+.state-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 36px 16px;
+  color: #64748b;
+  font-size: 14px;
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.state-block strong {
+  color: #1f2937;
+  font-size: 16px;
+}
+
+.state-block-error {
+  border-color: #fca5a5;
+  background: #fef2f2;
+  color: #b91c1c;
+}
+
+.state-block-error strong {
+  color: #991b1b;
 }

@@ -2,6 +2,7 @@ import { EyeOff, Heart, Home, MessageCircle, MoreHorizontal, Trash2, Utensils } 
 import type { MouseEvent } from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
+import { usePetLifeSystem } from '../hooks/use-pet-life-system';
 import { usePetChat } from '../hooks/use-pet-chat';
 import { hidePetWindow, openHomeWindow, startPetWindowDrag } from '../runtime/desktop-runtime-api';
 import type { CareAction } from '../types';
@@ -36,6 +37,15 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   const chat = usePetChat({
     petId: model.pet?.petId ?? null,
     onStateChange: model.handleStateChange,
+  });
+  const isLifeSystemPaused =
+    isChatOpen ||
+    isToolbarExpanded ||
+    activeInteractionMode !== null ||
+    model.activeAction !== null;
+  const life = usePetLifeSystem({
+    state: model.state,
+    isPaused: isLifeSystemPaused,
   });
   const latestPetReply = useMemo(() => findLatestPetReply(chat.messages), [chat.messages]);
   const visiblePetReply =
@@ -100,14 +110,22 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
       ? visiblePetReply.content
       : activeInteractionMode
         ? null
-        : model.feedback.message);
-  const bubbleTone = runtimeWarning ? 'error' : interactionHint ? 'idle' : model.feedback.tone;
+        : (life.reminderMessage ?? model.feedback.message));
+  const bubbleTone = runtimeWarning
+    ? 'error'
+    : interactionHint || life.reminderMessage
+      ? 'idle'
+      : model.feedback.tone;
   const bubbleDurationMs = runtimeWarning
     ? null
     : isChatOpen && visiblePetReply
       ? getChatBubbleDurationMs(visiblePetReply.content)
-      : 3000;
+      : life.reminderMessage
+        ? 12000
+        : 3000;
   const bubbleKey = `${bubbleTone}:${visiblePetReply?.messageId ?? bubbleMessage ?? ''}`;
+  const visualAction =
+    model.visualAction === 'idle' && life.visualAction ? life.visualAction : model.visualAction;
 
   const handleDragStart = (event: MouseEvent<HTMLElement>) => {
     if (activeInteractionMode || event.button !== 0 || isInteractiveElement(event.target)) {
@@ -138,7 +156,11 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   }, [bubbleDurationMs, bubbleKey, bubbleMessage, isBubbleAutoHidePaused]);
 
   return (
-    <main className="pet-window-shell" aria-label="Momo Pet transparent desktop window">
+    <main
+      className={`pet-window-shell pet-life-${life.behavior} pet-life-facing-${life.direction}`}
+      style={life.previewStyle}
+      aria-label="Momo Pet transparent desktop window"
+    >
       <section
         className="pet-window-drag-zone"
         aria-label="拖动 Momo Pet"
@@ -146,7 +168,7 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
         onMouseDown={handleDragStart}
       >
         <StateDeltaFloat deltas={model.stateDeltas} />
-        <MomoPetAvatar action={model.visualAction} />
+        <MomoPetAvatar action={visualAction} direction={life.direction} />
         {isBubbleVisible && bubbleMessage ? (
           <SpeechBubble
             message={bubbleMessage}

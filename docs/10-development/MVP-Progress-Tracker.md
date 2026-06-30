@@ -129,3 +129,93 @@
 | 本地缓存稳定性   | Not Started | Sprint 2    | 重启不丢状态         |
 | Windows 打包验证 | Not Started | 桌面端      | Windows 可安装或运行 |
 | macOS 打包验证   | Not Started | 桌面端      | macOS 可安装或运行   |
+
+## 2026-06-30 自动化验证记录
+
+本节记录由 AI 助手自动执行的非 UI 验证。UI 体验相关条目（鼠标交互、动画反馈、托盘点击、拖动等）仍需人工签字，状态字段保持 `Review`。
+
+### 通用质量门禁
+
+| 命令 | 结果 |
+| --- | --- |
+| `pnpm build:packages` | ✅ Done (4 packages) |
+| `pnpm build:desktop` | ✅ Vite build 1.86s，1608 modules |
+| `pnpm build:admin` | ✅ Vite build 1.73s，1579 modules |
+| `pnpm lint` | ✅ 6/6 workspace projects |
+| `pnpm format:check` | ✅ All files conform |
+| `mvn test` (JDK 21) | ✅ 14 tests，0 failures，0 errors，0 skipped |
+| `cargo check --locked` | ✅ Finished `dev` profile in 0.45s |
+
+### Sprint 1 · 后端 API 验证（curl）
+
+| 端点 | 输入 | 结果 |
+| --- | --- | --- |
+| `GET /api/health` | — | ✅ `success=true, status=UP` |
+| `POST /api/pets` | `{"name":"Momo Pet","species":"CAT"}` | ✅ `petId=pet_1c70fa22...`, `status=ACTIVE` |
+| `GET /api/pets/{id}` | — | ✅ 名称/物种/生日/状态/createdAt 完整 |
+| `GET /api/pets/{id}/state` | — | ✅ hunger/mood/cleanliness/energy/intimacy/experience/level 7 字段 |
+| `POST .../care/feed` | `{"foodCode":"DRIED_FISH"}` | ✅ hunger 70→88, mood 80→85, exp 0→10 |
+| `POST .../care/touch` | `{"touchType":"HEAD"}` | ✅ intimacy 20→23, mood 85→93, exp 10→15 |
+| `POST .../care/clean` | `{"cleanEventId":"default-clean-event"}` | ✅ cleanliness 70→95, mood 93→97, exp 15→23 |
+| `GET /api/pets/pet_does_not_exist` | — | ✅ `code=PET_NOT_FOUND`，服务不崩溃 |
+
+后端 PetCareApiTest/PetTest/PetStateTest/ChatApiTest/HealthControllerTest 共 14 个测试已通过。
+
+### Sprint 2 · 静态与 Rust 检查
+
+| 检查项 | 证据 |
+| --- | --- |
+| `tauri.conf.json` `pet` 窗口 | `transparent=true`、`decorations=false`、`alwaysOnTop=true`、`resizable=false`、`skipTaskbar=true` 全在 |
+| `tauri.conf.json` `home` 窗口 | 普通装饰、可见性默认 `false`（由 setup 函数 `configure_home_window` 隐藏） |
+| `position_store.rs` | 使用 `app.path().app_data_dir().join("window-position.json")` |
+| `window_manager.rs` | 注册 Show Momo / Hide Momo / Open Home / Quit 4 个菜单项；`Moved` 事件 + `handle_close_requested` 双路径保存位置；`is_position_visible` 校验 + `set_default_pet_window_position` 主屏右下安全区回退 |
+| `main.rs` invoke handler | 8 个命令：`open_home_window` / `show_pet_window` / `hide_pet_window` / `hide_all_windows_to_tray` / `get_runtime_window_mode` / `start_pet_window_drag` / `get_pet_window_placement` / `set_pet_window_position` |
+| `cargo check --locked` | ✅ Finished in 0.45s |
+
+### Sprint 6 · 后端 Chat API 验证（curl）
+
+| 用例 | 输入 | 期望 | 实际 |
+| --- | --- | --- | --- |
+| 正常发送 | `{"content":"你好呀"}` | USER+PET 双消息 + reply + state | ✅ 两条消息保存，回复含 `reply`/`state`/`fallback=false` |
+| 空消息 | `{"content":""}` | 校验失败 | ✅ `code=VALIDATION_FAILED` |
+| 纯空白 | `{"content":"   "}` | 校验失败 | ✅ `code=VALIDATION_FAILED` |
+| 超长 301 字 | 301 个字符 | 校验失败 | ✅ `code=VALIDATION_FAILED`（满足"或标准校验错误"） |
+| 不存在 petId | `pet_nope` | `PET_NOT_FOUND` | ✅ |
+| 默认 limit | — | 多个 | ✅ 返回 2 条（USER+PET） |
+| `limit=1` | — | 1 条 | ✅ |
+| `limit=999` | — | 上限 50 | ✅ 返回 10 条（被仓库数据量限制，未触达 50 上限，但 clamp 逻辑已实现） |
+| 顺序 | — | 时间升序 | ✅ USER 在前 PET 紧跟 |
+| AI 降级 | `MockPetDnaAiGateway` 不可用时 | fallback 回复 + 用户消息保留 | ✅ mvn test 日志 `【聊天降级】reason=IllegalStateException, fallback=true` |
+
+实现细节：`SendChatMessageRequest` 用 `@NotBlank @Size(max=300)`；`GetChatMessagesApplicationService.resolveLimit` 把 null/≤0 视为默认 20，并 `Math.min(limit, 50)`。
+
+### Sprint 4 · 静态与 Pet Studio 入口
+
+| 检查项 | 证据 |
+| --- | --- |
+| `pnpm --filter @momo/desktop lint` | ✅ |
+| `pnpm --filter @momo/desktop build` | ✅ |
+| `pnpm format:check` | ✅ |
+| 浏览器预览回归 | 已在 2026-06-30 修复记录中勾选 12/12 项 |
+
+### 仍需人工签字的 UI 项
+
+下列条目需要人工在实机/浏览器中完成：
+
+- **Sprint 0**：浏览每个工程，确认可启动
+- **Sprint 1**：浏览器加载桌宠主页，确认默认宠物自动出现、状态条变化、三个按钮反馈动效
+- **Sprint 2**：macOS + Windows 实机拖动、托盘/菜单栏点击、隐藏恢复、重启位置恢复
+- **Sprint 3**：Home 窗口和桌宠窗口下的三模式（拖食物、滑动抚摸、点击清理）实操
+- **Sprint 6**：Chat Panel 的加载/空/发送/错误四态切换、桌面端不白屏检查
+
+### 验证脚本摘要
+
+```text
+mvn test      → 14/14 ✅
+cargo check   → ✅
+pnpm build    → desktop/admin/packages 全通 ✅
+pnpm lint     → 6/6 ✅
+pnpm format:check → ✅
+curl Sprint 1 → 8/8 ✅
+curl Sprint 6 → 9/9 ✅
+```

@@ -16,7 +16,9 @@ fn main() {
             window_manager::hide_pet_window,
             window_manager::hide_all_windows_to_tray,
             window_manager::get_runtime_window_mode,
-            window_manager::start_pet_window_drag
+            window_manager::start_pet_window_drag,
+            window_manager::get_pet_window_placement,
+            window_manager::set_pet_window_position
         ])
         .run(tauri::generate_context!())
         .expect("failed to run Project Momo desktop shell");

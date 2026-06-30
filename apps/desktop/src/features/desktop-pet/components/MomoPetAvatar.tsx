@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import { resolveSpriteAction } from '../assets/momo-pet-sprite';
 import type { PetVisualAction } from '../types';
+import type { PetLifeDirection } from '../types';
 
 interface MomoPetAvatarProps {
   /** 当前视觉动作，来自运行时反馈，不承载领域业务判断。 */
   readonly action: PetVisualAction;
+  /** 当前移动方向，用于自主生活状态下翻转朝向。 */
+  readonly direction?: PetLifeDirection;
 }
 
 /**
@@ -13,12 +16,15 @@ interface MomoPetAvatarProps {
  * 前置条件：action 为 sprite manifest 支持的动作。后置条件：优先渲染透明 PNG 动作帧。
  * @throws 本组件不抛出异常。
  */
-export function MomoPetAvatar({ action }: MomoPetAvatarProps) {
+export function MomoPetAvatar({ action, direction = 'left' }: MomoPetAvatarProps) {
   const [failedActions, setFailedActions] = useState<ReadonlySet<PetVisualAction>>(new Set());
   const spriteAction = resolveSpriteAction(action, failedActions);
 
   return (
-    <div className={`momo-pet momo-pet-${action}`} aria-label="Default Momo Pet">
+    <div
+      className={`momo-pet momo-pet-${action} momo-pet-facing-${direction}`}
+      aria-label="Default Momo Pet"
+    >
       {spriteAction ? (
         <>
           <img

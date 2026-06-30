@@ -10,6 +10,16 @@ export type PetVisualAction =
   'idle' | 'happy' | 'eat' | 'sleep' | 'low-head' | 'lying' | 'grooming';
 
 /**
+ * 透明桌宠自主生活行为，只影响前端运行时表现，不直接改变领域状态。
+ */
+export type PetLifeBehavior = 'idle' | 'walk' | 'play' | 'rest' | 'sleep' | 'remind';
+
+/**
+ * 桌宠自主移动方向。
+ */
+export type PetLifeDirection = 'left' | 'right';
+
+/**
  * 用户反馈气泡语气，用于统一成功、错误和默认提示的视觉状态。
  */
 export type FeedbackTone = 'idle' | 'success' | 'error';

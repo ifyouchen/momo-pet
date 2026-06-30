@@ -22,4 +22,23 @@ public interface PetDnaRepository {
      * @param dnaPayload Pet DNA JSON
      */
     void saveConfirmedPetDna(PetId petId, int version, PetDnaSource source, String dnaPayload);
+
+    /**
+     * 查询指定宠物的最新 Pet DNA 记录。
+     *
+     * @param petId 宠物 ID
+     * @return 最新 Pet DNA 记录
+     */
+    LatestPetDna findLatestByPetId(PetId petId);
+
+    /**
+     * 最新 Pet DNA 记录。
+     *
+     * @param version 版本
+     * @param source 来源
+     * @param dnaPayload Pet DNA JSON
+     * @param confirmedAt 确认时间
+     */
+    record LatestPetDna(int version, PetDnaSource source, String dnaPayload, java.time.Instant confirmedAt) {
+    }
 }

@@ -366,11 +366,16 @@ button {
 }
 
 .momo-pet {
+  --pet-facing-scale: 1;
   width: 300px;
   height: 260px;
   position: relative;
-  animation: momo-idle 2.8s ease-in-out infinite;
+  animation: momo-breathe 3.8s ease-in-out infinite;
   filter: drop-shadow(0 22px 20px rgba(43, 54, 71, 0.16));
+}
+
+.momo-pet-facing-right {
+  --pet-facing-scale: -1;
 }
 
 .momo-pet-image {
@@ -382,6 +387,8 @@ button {
   object-fit: contain;
   object-position: center bottom;
   user-select: none;
+  transform: scaleX(var(--pet-facing-scale));
+  transform-origin: center bottom;
 }
 
 .momo-pet-eat,
@@ -526,12 +533,31 @@ button {
 
 .momo-pet-happy {
   animation:
-    momo-idle 2.8s ease-in-out infinite,
+    momo-breathe 3.8s ease-in-out infinite,
     momo-pop 420ms ease;
 }
 
 .momo-pet-happy .momo-pet-image {
+  animation: momo-happy-sway 760ms ease-in-out;
   filter: saturate(1.06) brightness(1.02);
+}
+
+.momo-pet-eat .momo-pet-image,
+.pet-life-walk .momo-pet-idle .momo-pet-image {
+  animation: momo-nod 780ms ease-in-out infinite;
+}
+
+.momo-pet-grooming .momo-pet-image {
+  animation: momo-grooming-wipe 820ms ease-in-out infinite;
+}
+
+.momo-pet-sleep .momo-pet-image,
+.momo-pet-lying .momo-pet-image {
+  animation: momo-sleep-breathe 3.2s ease-in-out infinite;
+}
+
+.pet-life-play .momo-pet-image {
+  animation: momo-play-bounce 980ms ease-in-out infinite;
 }
 
 .momo-pet-happy .eye {
@@ -1182,6 +1208,8 @@ button {
   gap: 10px;
   padding: 84px 18px 78px;
   cursor: grab;
+  transform: translate(var(--pet-life-preview-x, 0), var(--pet-life-preview-y, 0));
+  transition: transform 900ms ease-in-out;
   user-select: none;
 }
 
@@ -1502,14 +1530,14 @@ button {
   transform: none;
 }
 
-@keyframes momo-idle {
+@keyframes momo-breathe {
   0%,
   100% {
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 
   50% {
-    transform: translateY(-7px);
+    transform: translateY(-5px) scale(1.006);
   }
 }
 
@@ -1524,6 +1552,75 @@ button {
 
   100% {
     transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes momo-happy-sway {
+  0%,
+  100% {
+    transform: scaleX(var(--pet-facing-scale)) rotate(0deg) translateY(0);
+  }
+
+  35% {
+    transform: scaleX(var(--pet-facing-scale)) rotate(-1.8deg) translateY(-4px);
+  }
+
+  70% {
+    transform: scaleX(var(--pet-facing-scale)) rotate(1.2deg) translateY(-2px);
+  }
+}
+
+@keyframes momo-nod {
+  0%,
+  100% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(0) rotate(0deg);
+  }
+
+  45% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(6px) rotate(1.4deg);
+  }
+}
+
+@keyframes momo-grooming-wipe {
+  0%,
+  100% {
+    transform: scaleX(var(--pet-facing-scale)) translateX(0) rotate(0deg);
+  }
+
+  35% {
+    transform: scaleX(var(--pet-facing-scale)) translateX(-4px) rotate(-1.1deg);
+  }
+
+  70% {
+    transform: scaleX(var(--pet-facing-scale)) translateX(4px) rotate(1.1deg);
+  }
+}
+
+@keyframes momo-sleep-breathe {
+  0%,
+  100% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(0) scale(1);
+    filter: saturate(0.96) brightness(0.98);
+  }
+
+  50% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(3px) scale(0.994);
+    filter: saturate(0.92) brightness(0.96);
+  }
+}
+
+@keyframes momo-play-bounce {
+  0%,
+  100% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(0) rotate(0deg);
+  }
+
+  38% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(-9px) rotate(-1.4deg);
+  }
+
+  70% {
+    transform: scaleX(var(--pet-facing-scale)) translateY(-2px) rotate(1.2deg);
   }
 }
 

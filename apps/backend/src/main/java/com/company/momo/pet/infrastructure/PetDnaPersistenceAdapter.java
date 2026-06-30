@@ -6,6 +6,7 @@ import com.company.momo.pet.domain.PetId;
 import org.springframework.stereotype.Repository;
 
 import java.time.Instant;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -49,5 +50,17 @@ class PetDnaPersistenceAdapter implements PetDnaRepository {
             dnaPayload,
             Instant.now()
         ));
+    }
+
+    /**
+     * 查询指定宠物的最新 Pet DNA 记录。
+     *
+     * @param petId 宠物 ID
+     * @return 最新 Pet DNA 记录
+     */
+    @Override
+    public LatestPetDna findLatestByPetId(PetId petId) {
+        Optional<PetDnaJpaEntity> entity = petDnaJpaRepository.findFirstByPetIdOrderByVersionDesc(petId.value());
+        return entity.map(e -> new LatestPetDna(e.version(), e.source(), e.dnaPayload(), e.confirmedAt())).orElse(null);
     }
 }
