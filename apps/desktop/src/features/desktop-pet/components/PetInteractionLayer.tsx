@@ -58,7 +58,9 @@ export function PetInteractionLayer({
       onHintChange(null);
       return undefined;
     }
-    onHintChange(MODE_COPY[mode].hint);
+    if (!compact) {
+      onHintChange(MODE_COPY[mode].hint);
+    }
     setDragPoint(null);
     setTouchDistance(0);
     setIsCompleting(false);
@@ -73,7 +75,9 @@ export function PetInteractionLayer({
       }
     };
     const timeoutId = window.setTimeout(() => {
-      onHintChange('那我先自己待一会儿');
+      if (!compact) {
+        onHintChange('那我先自己待一会儿');
+      }
       window.setTimeout(onCancel, INTERACTION_CANCEL_DELAY_MS);
     }, INTERACTION_TIMEOUT_MS);
     window.addEventListener('keydown', handleKeyDown);
@@ -81,7 +85,7 @@ export function PetInteractionLayer({
       window.clearTimeout(timeoutId);
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [mode, onCancel, onHintChange]);
+  }, [compact, mode, onCancel, onHintChange]);
 
   if (!mode) {
     return null;
@@ -96,15 +100,21 @@ export function PetInteractionLayer({
     }
     isCompletingRef.current = true;
     setIsCompleting(true);
-    onHintChange('我来啦');
+    if (!compact) {
+      onHintChange('我来啦');
+    }
     try {
       await onComplete(action);
-      onHintChange(null);
+      if (!compact) {
+        onHintChange(null);
+      }
       window.setTimeout(onCancel, INTERACTION_CANCEL_DELAY_MS);
     } catch {
       isCompletingRef.current = false;
       setIsCompleting(false);
-      onHintChange('没有成功，再试一次');
+      if (!compact) {
+        onHintChange('没有成功，再试一次');
+      }
     }
   };
 
@@ -114,7 +124,9 @@ export function PetInteractionLayer({
     }
     event.currentTarget.setPointerCapture(event.pointerId);
     setDragPoint({ x: event.clientX, y: event.clientY });
-    onHintChange('递到我嘴边嘛');
+    if (!compact) {
+      onHintChange('递到我嘴边嘛');
+    }
   };
 
   const handleFoodPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
@@ -134,7 +146,9 @@ export function PetInteractionLayer({
       await completeInteraction('feed');
       return;
     }
-    onHintChange('还差一点点，放到嘴边哦');
+    if (!compact) {
+      onHintChange('还差一点点，放到嘴边哦');
+    }
   };
 
   const handleTouchPointerDown = (event: PointerEvent<HTMLDivElement>) => {
@@ -146,7 +160,9 @@ export function PetInteractionLayer({
     lastTouchPointRef.current = { x: event.clientX, y: event.clientY };
     touchDistanceRef.current = 0;
     setTouchDistance(0);
-    onHintChange('摸摸头会更舒服');
+    if (!compact) {
+      onHintChange('摸摸头会更舒服');
+    }
   };
 
   const handleTouchPointerMove = async (event: PointerEvent<HTMLDivElement>) => {
@@ -171,7 +187,7 @@ export function PetInteractionLayer({
 
   const handleTouchPointerUp = () => {
     lastTouchPointRef.current = null;
-    if (!isCompletingRef.current) {
+    if (!compact && !isCompletingRef.current) {
       onHintChange('再摸一会儿嘛');
     }
   };
@@ -180,12 +196,14 @@ export function PetInteractionLayer({
 
   return (
     <div className={`interaction-layer${compact ? ' interaction-layer-compact' : ''}`}>
-      <div className="interaction-panel" role="status">
-        <strong>{copy.title}</strong>
-        <button type="button" aria-label="退出交互模式" onClick={onCancel}>
-          <X size={16} />
-        </button>
-      </div>
+      {!compact ? (
+        <div className="interaction-panel" role="status">
+          <strong>{copy.title}</strong>
+          <button type="button" aria-label="退出交互模式" onClick={onCancel}>
+            <X size={16} />
+          </button>
+        </div>
+      ) : null}
 
       <div
         ref={hitZoneRef}
@@ -206,7 +224,7 @@ export function PetInteractionLayer({
         {mode === 'feed' ? (
           <>
             <Fish size={compact ? 18 : 22} />
-            <span className="feed-target-label">嘴边</span>
+            {!compact ? <span className="feed-target-label">嘴边</span> : null}
           </>
         ) : null}
       </div>
@@ -222,7 +240,7 @@ export function PetInteractionLayer({
           onPointerUp={(event) => void handleFoodPointerUp(event)}
         >
           <Fish size={compact ? 22 : 26} />
-          <span>小鱼干</span>
+          {!compact ? <span>小鱼干</span> : null}
         </button>
       ) : null}
 
@@ -234,7 +252,7 @@ export function PetInteractionLayer({
           onClick={() => void completeInteraction('clean')}
         >
           <Eraser size={compact ? 20 : 24} />
-          <span>{isBusy ? '清理中' : '点击清理'}</span>
+          {!compact ? <span>{isBusy ? '清理中' : '点击清理'}</span> : null}
         </button>
       ) : null}
     </div>
