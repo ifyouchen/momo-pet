@@ -15,6 +15,7 @@ export interface PetChatModel {
   readonly errorMessage: string | null;
   readonly isLoadingHistory: boolean;
   readonly isSending: boolean;
+  readonly latestSentPetReplyId: string | null;
   readonly setDraft: (value: string) => void;
   readonly sendMessage: () => Promise<void>;
 }
@@ -30,6 +31,7 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const [isSending, setIsSending] = useState(false);
+  const [latestSentPetReplyId, setLatestSentPetReplyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!petId) {
@@ -69,16 +71,18 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
     try {
       const response = await sendChatMessage(petId, { content });
       const now = new Date().toISOString();
+      const petReplyMessageId = `${response.messageId}-reply`;
       setMessages((currentMessages) => [
         ...currentMessages,
         { messageId: response.messageId, role: 'USER', content, createdAt: now },
         {
-          messageId: `${response.messageId}-reply`,
+          messageId: petReplyMessageId,
           role: 'PET',
           content: response.reply,
           createdAt: now,
         },
       ]);
+      setLatestSentPetReplyId(petReplyMessageId);
       setDraft('');
       onStateChange(response.state);
       if (response.fallback) {
@@ -97,6 +101,7 @@ export function usePetChat({ petId, onStateChange }: UsePetChatOptions): PetChat
     errorMessage,
     isLoadingHistory,
     isSending,
+    latestSentPetReplyId,
     setDraft,
     sendMessage,
   };

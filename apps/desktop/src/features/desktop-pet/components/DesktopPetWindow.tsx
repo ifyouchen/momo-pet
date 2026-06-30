@@ -31,11 +31,14 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
   const [isBubbleVisible, setIsBubbleVisible] = useState(true);
   const toolbarHoverTimeoutRef = useRef<number | null>(null);
+  const toolbarHoverSuppressedUntilRef = useRef(0);
   const chat = usePetChat({
     petId: model.pet?.petId ?? null,
     onStateChange: model.handleStateChange,
   });
   const latestPetReply = useMemo(() => findLatestPetReply(chat.messages), [chat.messages]);
+  const visiblePetReply =
+    latestPetReply?.messageId === chat.latestSentPetReplyId ? latestPetReply : null;
   const cancelInteractionMode = useCallback(() => {
     setInteractionHint(null);
     setActiveInteractionMode(null);
@@ -54,6 +57,7 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
     setIsToolbarExpanded(false);
   }, []);
   const handleCloseChat = useCallback(() => {
+    toolbarHoverSuppressedUntilRef.current = Date.now() + 700;
     setIsChatOpen(false);
     setIsToolbarExpanded(false);
   }, []);
@@ -68,6 +72,9 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   }, []);
   const handleToolbarMouseEnter = useCallback(() => {
     clearToolbarHoverTimeout();
+    if (Date.now() < toolbarHoverSuppressedUntilRef.current) {
+      return;
+    }
     toolbarHoverTimeoutRef.current = window.setTimeout(() => {
       setIsToolbarExpanded(true);
       toolbarHoverTimeoutRef.current = null;
@@ -82,14 +89,18 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   const bubbleMessage =
     runtimeWarning ??
     interactionHint ??
-    (isChatOpen && latestPetReply
-      ? latestPetReply
+    (isChatOpen && visiblePetReply
+      ? visiblePetReply.content
       : activeInteractionMode
         ? null
         : model.feedback.message);
   const bubbleTone = runtimeWarning ? 'error' : interactionHint ? 'idle' : model.feedback.tone;
-  const bubbleDurationMs = runtimeWarning ? null : isChatOpen && latestPetReply ? 5000 : 3000;
-  const bubbleKey = `${bubbleTone}:${bubbleMessage ?? ''}`;
+  const bubbleDurationMs = runtimeWarning
+    ? null
+    : isChatOpen && visiblePetReply
+      ? getChatBubbleDurationMs(visiblePetReply.content)
+      : 3000;
+  const bubbleKey = `${bubbleTone}:${visiblePetReply?.messageId ?? bubbleMessage ?? ''}`;
 
   const handleDragStart = (event: MouseEvent<HTMLElement>) => {
     if (activeInteractionMode || event.button !== 0 || isInteractiveElement(event.target)) {
@@ -229,12 +240,18 @@ function isInteractiveElement(target: EventTarget): boolean {
   return target instanceof HTMLElement && Boolean(target.closest('button,a,input,textarea,select'));
 }
 
-function findLatestPetReply(messages: ReturnType<typeof usePetChat>['messages']): string | null {
+function findLatestPetReply(
+  messages: ReturnType<typeof usePetChat>['messages'],
+): ReturnType<typeof usePetChat>['messages'][number] | null {
   for (let index = messages.length - 1; index >= 0; index -= 1) {
     const message = messages[index];
     if (message.role === 'PET') {
-      return message.content;
+      return message;
     }
   }
   return null;
+}
+
+function getChatBubbleDurationMs(content: string): number {
+  return Math.min(12000, 8000 + content.length * 80);
 }
