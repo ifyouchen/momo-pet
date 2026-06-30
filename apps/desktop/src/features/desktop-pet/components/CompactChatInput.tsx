@@ -1,4 +1,4 @@
-import { Send, X } from 'lucide-react';
+import { LoaderCircle, Send, X } from 'lucide-react';
 import type { FormEvent } from 'react';
 import type { PetChatModel } from '../hooks/use-pet-chat';
 
@@ -20,12 +20,17 @@ export function CompactChatInput({ chat, onClose }: CompactChatInputProps) {
     void chat.sendMessage();
   };
 
-  const statusText = chat.errorMessage ?? (chat.isLoadingHistory ? '正在取回最近聊天。' : null);
+  const statusText =
+    chat.errorMessage ??
+    (chat.isSending ? '正在等 Momo 回复。' : chat.isLoadingHistory ? '正在取回最近聊天。' : null);
 
   return (
     <aside className="compact-chat" aria-label="快速聊天">
       {statusText ? (
-        <div className="compact-chat-status" role={chat.errorMessage ? 'alert' : 'status'}>
+        <div
+          className={`compact-chat-status${chat.errorMessage ? ' compact-chat-status-error' : ''}`}
+          role={chat.errorMessage ? 'alert' : 'status'}
+        >
           {statusText}
         </div>
       ) : null}
@@ -35,10 +40,15 @@ export function CompactChatInput({ chat, onClose }: CompactChatInputProps) {
           maxLength={300}
           placeholder="今天工作好累"
           value={chat.draft}
+          disabled={chat.isSending}
           onChange={(event) => chat.setDraft(event.target.value)}
         />
         <button type="submit" aria-label="发送聊天" disabled={chat.isSending || !chat.draft.trim()}>
-          <Send size={17} />
+          {chat.isSending ? (
+            <LoaderCircle className="compact-chat-loading-icon" size={17} />
+          ) : (
+            <Send size={17} />
+          )}
         </button>
         <button type="button" aria-label="关闭聊天" onClick={onClose}>
           <X size={17} />

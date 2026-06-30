@@ -1208,6 +1208,7 @@ button {
 
 .pet-window-shell .speech-bubble {
   max-width: 260px;
+  max-height: 104px;
   position: absolute;
   left: 24px;
   top: 24px;
@@ -1217,7 +1218,42 @@ button {
   backdrop-filter: blur(12px);
   font-size: 14px;
   line-height: 1.35;
+  overflow: hidden;
   pointer-events: none;
+}
+
+.pet-window-shell .speech-bubble-chat {
+  width: max-content;
+  max-width: 280px;
+  left: 20px;
+  top: 18px;
+  padding: 10px 14px;
+  font-size: 14px;
+  text-align: left;
+  pointer-events: auto;
+}
+
+.pet-window-shell .speech-bubble-chat:focus-visible {
+  outline: 3px solid rgba(127, 200, 169, 0.2);
+  outline-offset: 2px;
+}
+
+.pet-window-shell .speech-bubble-long {
+  width: min(300px, calc(100% - 40px));
+  max-width: none;
+  max-height: 112px;
+  top: 12px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+
+.pet-window-shell .speech-bubble-long::-webkit-scrollbar {
+  width: 6px;
+}
+
+.pet-window-shell .speech-bubble-long::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(64, 80, 102, 0.22);
 }
 
 .pet-window-shell .speech-bubble::after {
@@ -1292,15 +1328,21 @@ button {
 .compact-chat-status {
   width: fit-content;
   max-width: 100%;
-  border: 1px solid rgba(217, 94, 94, 0.16);
+  border: 1px solid rgba(127, 200, 169, 0.2);
   border-radius: 8px;
   padding: 6px 9px;
-  background: rgba(255, 245, 242, 0.92);
+  background: rgba(255, 255, 255, 0.86);
   box-shadow: 0 10px 26px rgba(42, 53, 70, 0.1);
-  color: #9d3e34;
+  color: #347244;
   font-size: 12px;
   font-weight: 850;
   backdrop-filter: blur(12px);
+}
+
+.compact-chat-status-error {
+  border-color: rgba(217, 94, 94, 0.16);
+  background: rgba(255, 245, 242, 0.92);
+  color: #9d3e34;
 }
 
 .compact-chat-row {
@@ -1335,6 +1377,12 @@ button {
   outline: 3px solid rgba(127, 200, 169, 0.18);
 }
 
+.compact-chat-row input:disabled {
+  color: #64748b;
+  cursor: wait;
+  opacity: 0.8;
+}
+
 .compact-chat-row button {
   height: 36px;
   display: grid;
@@ -1365,6 +1413,10 @@ button {
   cursor: not-allowed;
   opacity: 0.54;
   transform: none;
+}
+
+.compact-chat-loading-icon {
+  animation: compact-chat-spin 900ms linear infinite;
 }
 
 .pet-window-toolbar-shell {
@@ -1489,6 +1541,12 @@ button {
   100% {
     opacity: 0;
     transform: translateY(-12px);
+  }
+}
+
+@keyframes compact-chat-spin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

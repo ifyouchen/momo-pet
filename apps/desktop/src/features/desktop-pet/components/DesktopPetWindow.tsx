@@ -30,6 +30,7 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
   const [isBubbleVisible, setIsBubbleVisible] = useState(true);
+  const [isBubbleAutoHidePaused, setIsBubbleAutoHidePaused] = useState(false);
   const toolbarHoverTimeoutRef = useRef<number | null>(null);
   const toolbarHoverSuppressedUntilRef = useRef(0);
   const chat = usePetChat({
@@ -63,6 +64,12 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   }, []);
   const handleToggleToolbar = useCallback(() => {
     setIsToolbarExpanded((current) => !current);
+  }, []);
+  const handlePauseBubbleAutoHide = useCallback(() => {
+    setIsBubbleAutoHidePaused(true);
+  }, []);
+  const handleResumeBubbleAutoHide = useCallback(() => {
+    setIsBubbleAutoHidePaused(false);
   }, []);
   const clearToolbarHoverTimeout = useCallback(() => {
     if (toolbarHoverTimeoutRef.current !== null) {
@@ -113,17 +120,22 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   useEffect(() => clearToolbarHoverTimeout, [clearToolbarHoverTimeout]);
 
   useEffect(() => {
+    setIsBubbleAutoHidePaused(false);
+  }, [bubbleKey]);
+
+  useEffect(() => {
     if (!bubbleMessage) {
       setIsBubbleVisible(false);
+      setIsBubbleAutoHidePaused(false);
       return undefined;
     }
     setIsBubbleVisible(true);
-    if (bubbleDurationMs === null) {
+    if (bubbleDurationMs === null || isBubbleAutoHidePaused) {
       return undefined;
     }
     const timeoutId = window.setTimeout(() => setIsBubbleVisible(false), bubbleDurationMs);
     return () => window.clearTimeout(timeoutId);
-  }, [bubbleDurationMs, bubbleKey, bubbleMessage]);
+  }, [bubbleDurationMs, bubbleKey, bubbleMessage, isBubbleAutoHidePaused]);
 
   return (
     <main className="pet-window-shell" aria-label="Momo Pet transparent desktop window">
@@ -136,7 +148,13 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
         <StateDeltaFloat deltas={model.stateDeltas} />
         <MomoPetAvatar action={model.visualAction} />
         {isBubbleVisible && bubbleMessage ? (
-          <SpeechBubble message={bubbleMessage} tone={bubbleTone} />
+          <SpeechBubble
+            message={bubbleMessage}
+            tone={bubbleTone}
+            variant={isChatOpen && visiblePetReply ? 'chat' : 'feedback'}
+            onPauseAutoHide={handlePauseBubbleAutoHide}
+            onResumeAutoHide={handleResumeBubbleAutoHide}
+          />
         ) : null}
         <PetInteractionLayer
           mode={activeInteractionMode}
