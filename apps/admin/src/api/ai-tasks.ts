@@ -1,4 +1,4 @@
-import { get } from './client';
+import { get, type RequestOptions } from './client';
 
 export interface AiTaskSummary {
   readonly taskId: string;
@@ -26,15 +26,13 @@ export interface AiTaskDetail {
   readonly errorCode: string | null;
 }
 
-export function listAiTasks(params: {
-  status?: string;
-  taskType?: string;
-  page?: number;
-  size?: number;
-}) {
-  return get<AiTaskList>('/api/ai/tasks', { params });
+export function listAiTasks(
+  params: { status?: string; taskType?: string; page?: number; size?: number },
+  options: RequestOptions = {},
+) {
+  return get<AiTaskList>('/api/ai/tasks', { ...options, params });
 }
 
-export function getAiTask(taskId: string) {
-  return get<AiTaskDetail>(`/api/ai/tasks/${encodeURIComponent(taskId)}`);
+export function getAiTask(taskId: string, options: RequestOptions = {}) {
+  return get<AiTaskDetail>(`/api/ai/tasks/${encodeURIComponent(taskId)}`, options);
 }

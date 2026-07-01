@@ -27,7 +27,7 @@ export function AiTasksListPage() {
   const [taskType, setTaskType] = useState('');
   const [page, setPage] = useState(0);
   const { state, refetch } = useAsync({
-    fetcher: () => listAiTasks({ status, taskType, page, size: 20 }),
+    fetcher: (signal) => listAiTasks({ status, taskType, page, size: 20 }, { signal }),
     deps: [status, taskType, page],
   });
 

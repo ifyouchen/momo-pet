@@ -1,10 +1,17 @@
 import type { PetProfile, PetState } from '@momo/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { cleanPet, createPet, feedPet, getPet, getPetState, touchPet } from '../api/pet-api';
+import { getStateDeltas } from '../runtime/default-pet-state-deltas';
+import { getSuccessMessage, getVisualActionSequence } from '../runtime/default-pet-visuals';
 import type { CareAction, FeedbackTone, PetVisualAction, StateDelta } from '../types';
 
 const LOCAL_PET_ID_KEY = 'momo.defaultPetId';
 const DEFAULT_CLEAN_EVENT_ID = 'default-clean-event';
+const STATE_DELTA_HIDE_DELAY_MS = 1800;
+const CHAT_HAPPY_DURATION_MS = 1400;
+const DEFAULT_BOOTSTRAP_MESSAGE = '今天也陪你一起开工。';
+const BOOTSTRAP_SUCCESS_MESSAGE = 'Momo Pet 已准备好啦。';
+const CHAT_SUCCESS_MESSAGE = '我听见你啦。';
 
 interface ActionFeedback {
   readonly tone: FeedbackTone;
@@ -40,7 +47,7 @@ export function useDefaultPet(): DefaultPetModel {
   const [visualAction, setVisualAction] = useState<PetVisualAction>('idle');
   const [feedback, setFeedback] = useState<ActionFeedback>({
     tone: 'idle',
-    message: '今天也陪你一起开工。',
+    message: DEFAULT_BOOTSTRAP_MESSAGE,
   });
   const visualTimersRef = useRef<readonly number[]>([]);
 
@@ -79,7 +86,7 @@ export function useDefaultPet(): DefaultPetModel {
   const scheduleChatVisualAction = useCallback(() => {
     clearVisualTimers();
     setVisualAction('happy');
-    const idleTimer = window.setTimeout(() => setVisualAction('idle'), 1400);
+    const idleTimer = window.setTimeout(() => setVisualAction('idle'), CHAT_HAPPY_DURATION_MS);
     visualTimersRef.current = [idleTimer];
   }, [clearVisualTimers]);
 
@@ -90,7 +97,7 @@ export function useDefaultPet(): DefaultPetModel {
       window.localStorage.setItem(LOCAL_PET_ID_KEY, profile.petId);
       setPet(profile);
       setState(await getPetState(profile.petId));
-      setFeedback({ tone: 'success', message: 'Momo Pet 已准备好啦。' });
+      setFeedback({ tone: 'success', message: BOOTSTRAP_SUCCESS_MESSAGE });
     } catch (error) {
       window.localStorage.removeItem(LOCAL_PET_ID_KEY);
       setFeedback({ tone: 'error', message: getErrorMessage(error) });
@@ -130,7 +137,7 @@ export function useDefaultPet(): DefaultPetModel {
         setStateDeltas(getStateDeltas(previousState, nextState));
         return nextState;
       });
-      setFeedback({ tone: 'success', message: '我听见你啦。' });
+      setFeedback({ tone: 'success', message: CHAT_SUCCESS_MESSAGE });
       scheduleChatVisualAction();
     },
     [scheduleChatVisualAction],
@@ -144,7 +151,7 @@ export function useDefaultPet(): DefaultPetModel {
     if (stateDeltas.length === 0) {
       return undefined;
     }
-    const timeoutId = window.setTimeout(() => setStateDeltas([]), 1800);
+    const timeoutId = window.setTimeout(() => setStateDeltas([]), STATE_DELTA_HIDE_DELAY_MS);
     return () => window.clearTimeout(timeoutId);
   }, [stateDeltas]);
 
@@ -184,60 +191,6 @@ function executeCareAction(petId: string, action: CareAction): Promise<PetState>
   return cleanPet(petId, { cleanEventId: DEFAULT_CLEAN_EVENT_ID });
 }
 
-function getStateDeltas(
-  previousState: PetState | null,
-  nextState: PetState,
-): readonly StateDelta[] {
-  if (!previousState) {
-    return [];
-  }
-  return [
-    createDelta('饱食', nextState.hunger - previousState.hunger),
-    createDelta('心情', nextState.mood - previousState.mood),
-    createDelta('清洁', nextState.cleanliness - previousState.cleanliness),
-    createDelta('亲密', nextState.intimacy - previousState.intimacy),
-    createDelta('经验', nextState.experience - previousState.experience),
-  ].filter((delta): delta is StateDelta => Boolean(delta));
-}
-
-function createDelta(label: string, value: number): StateDelta | null {
-  return value > 0 ? { label, value } : null;
-}
-
-function getSuccessMessage(action: CareAction): string {
-  if (action === 'feed') {
-    return '吃到啦，谢谢你。';
-  }
-  if (action === 'touch') {
-    return '舒服多啦。';
-  }
-  return '干净清爽了。';
-}
-
 function getErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : '连接失败，请确认后端已启动。';
-}
-
-function getVisualActionSequence(
-  action: CareAction,
-): readonly { readonly action: PetVisualAction; readonly atMs: number }[] {
-  if (action === 'feed') {
-    return [
-      { action: 'low-head', atMs: 0 },
-      { action: 'eat', atMs: 360 },
-      { action: 'happy', atMs: 1450 },
-      { action: 'idle', atMs: 2200 },
-    ];
-  }
-  if (action === 'clean') {
-    return [
-      { action: 'grooming', atMs: 0 },
-      { action: 'happy', atMs: 1800 },
-      { action: 'idle', atMs: 2400 },
-    ];
-  }
-  return [
-    { action: 'happy', atMs: 0 },
-    { action: 'idle', atMs: 1700 },
-  ];
 }

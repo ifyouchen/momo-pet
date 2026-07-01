@@ -1,4 +1,4 @@
-import { get } from './client';
+import { get, type RequestOptions } from './client';
 import type { AiTaskSummary } from './ai-tasks';
 
 export interface AdminDashboard {
@@ -14,6 +14,6 @@ export interface AdminDashboard {
   readonly recentTimeouts: ReadonlyArray<AiTaskSummary>;
 }
 
-export function getDashboardMetrics() {
-  return get<AdminDashboard>('/api/admin/dashboard/metrics');
+export function getDashboardMetrics(options: RequestOptions = {}) {
+  return get<AdminDashboard>('/api/admin/dashboard/metrics', options);
 }

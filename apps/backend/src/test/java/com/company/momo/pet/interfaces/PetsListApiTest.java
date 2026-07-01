@@ -7,8 +7,10 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.everyItem;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
+import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -43,7 +45,39 @@ class PetsListApiTest {
 
         mockMvc.perform(get("/api/pets").param("species", "BIRD"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.data.items[*].species", org.hamcrest.Matchers.everyItem(org.hamcrest.Matchers.is("BIRD"))));
+            .andExpect(jsonPath("$.data.items[*].species", everyItem(is("BIRD"))));
+    }
+
+    @Test
+    void shouldFilterPetsByStatus() throws Exception {
+        createPet("Status Filter Cat", "CAT");
+
+        mockMvc.perform(get("/api/pets").param("status", "ACTIVE"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.items[*].status", everyItem(is("ACTIVE"))));
+    }
+
+    @Test
+    void shouldFilterPetsBySpeciesAndStatus() throws Exception {
+        createPet("Bird Status Filter", "BIRD");
+
+        mockMvc.perform(get("/api/pets").param("species", "BIRD").param("status", "ACTIVE"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.items[*].species", everyItem(is("BIRD"))))
+            .andExpect(jsonPath("$.data.items[*].status", everyItem(is("ACTIVE"))));
+    }
+
+    @Test
+    void shouldPagePets() throws Exception {
+        createPet("Pager A", "CAT");
+        createPet("Pager B", "CAT");
+
+        mockMvc.perform(get("/api/pets").param("page", "0").param("size", "1"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.data.items", hasSize(1)))
+            .andExpect(jsonPath("$.data.total", greaterThanOrEqualTo(2)))
+            .andExpect(jsonPath("$.data.page").value(0))
+            .andExpect(jsonPath("$.data.size").value(1));
     }
 
     @Test

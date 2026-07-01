@@ -51,6 +51,29 @@ public interface AiGenerationTaskRepository {
     long countByStatus(AiTaskStatus status);
 
     /**
+     * 一次性聚合所有状态的任务数量，按状态分组返回结果列表。
+     *
+     * @return 状态到数量的领域结果列表
+     */
+    List<AiTaskStatusCount> countTasksGroupedByStatus();
+
+    /**
+     * 统计所有 AI 任务数量。
+     *
+     * @return 数量
+     */
+    long count();
+
+    /**
+     * 查询指定状态的最近任务，按更新时间倒序。
+     *
+     * @param status 任务状态
+     * @param limit 最大任务数
+     * @return 任务列表
+     */
+    List<AiGenerationTask> findRecentByStatus(AiTaskStatus status, int limit);
+
+    /**
      * 任务分页结果，承载领域数据。
      *
      * @param items 任务聚合列表

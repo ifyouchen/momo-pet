@@ -4,6 +4,7 @@ import com.company.momo.ai.domain.AiGenerationTask;
 import com.company.momo.ai.domain.AiGenerationTaskRepository;
 import com.company.momo.ai.domain.AiTaskId;
 import com.company.momo.ai.domain.AiTaskStatus;
+import com.company.momo.ai.domain.AiTaskStatusCount;
 import com.company.momo.ai.domain.AiTaskType;
 import com.company.momo.pet.domain.PetId;
 import com.company.momo.pet.domain.UserId;
@@ -99,6 +100,45 @@ class AiGenerationTaskPersistenceAdapter implements AiGenerationTaskRepository {
     @Override
     public long countByStatus(AiTaskStatus status) {
         return aiGenerationTaskJpaRepository.countByStatus(status);
+    }
+
+    /**
+     * 一次性聚合所有状态的任务数量。
+     *
+     * @return 状态到数量的领域结果列表
+     */
+    @Override
+    public List<AiTaskStatusCount> countTasksGroupedByStatus() {
+        return aiGenerationTaskJpaRepository.countTasksGroupedByStatus()
+            .stream()
+            .map(row -> new AiTaskStatusCount(row.getStatus(), row.getCount()))
+            .toList();
+    }
+
+    /**
+     * 统计所有 AI 任务数量。
+     *
+     * @return 数量
+     */
+    @Override
+    public long count() {
+        return aiGenerationTaskJpaRepository.count();
+    }
+
+    /**
+     * 查询指定状态的最近任务，按更新时间倒序。
+     *
+     * @param status 任务状态
+     * @param limit 最大任务数
+     * @return 任务列表
+     */
+    @Override
+    public List<AiGenerationTask> findRecentByStatus(AiTaskStatus status, int limit) {
+        return aiGenerationTaskJpaRepository
+            .findByStatusOrderByUpdatedAtDesc(status, PageRequest.of(0, limit))
+            .stream()
+            .map(this::toDomain)
+            .toList();
     }
 
     private AiGenerationTask toDomain(AiGenerationTaskJpaEntity entity) {

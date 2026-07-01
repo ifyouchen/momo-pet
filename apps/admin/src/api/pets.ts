@@ -1,4 +1,4 @@
-import { get } from './client';
+import { get, type RequestOptions } from './client';
 
 export interface PetSummary {
   readonly petId: string;
@@ -35,23 +35,21 @@ export interface PetDna {
   readonly confirmedAt: string;
 }
 
-export function listPets(params: {
-  species?: string;
-  status?: string;
-  page?: number;
-  size?: number;
-}) {
-  return get<PetList>('/api/pets', { params });
+export function listPets(
+  params: { species?: string; status?: string; page?: number; size?: number },
+  options: RequestOptions = {},
+) {
+  return get<PetList>('/api/pets', { ...options, params });
 }
 
-export function getPet(petId: string) {
-  return get<PetSummary>(`/api/pets/${encodeURIComponent(petId)}`);
+export function getPet(petId: string, options: RequestOptions = {}) {
+  return get<PetSummary>(`/api/pets/${encodeURIComponent(petId)}`, options);
 }
 
-export function getPetState(petId: string) {
-  return get<PetState>(`/api/pets/${encodeURIComponent(petId)}/state`);
+export function getPetState(petId: string, options: RequestOptions = {}) {
+  return get<PetState>(`/api/pets/${encodeURIComponent(petId)}/state`, options);
 }
 
-export function getPetDna(petId: string) {
-  return get<PetDna>(`/api/pets/${encodeURIComponent(petId)}/dna/latest`);
+export function getPetDna(petId: string, options: RequestOptions = {}) {
+  return get<PetDna>(`/api/pets/${encodeURIComponent(petId)}/dna/latest`, options);
 }

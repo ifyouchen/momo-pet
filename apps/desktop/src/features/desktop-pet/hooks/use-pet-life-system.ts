@@ -7,19 +7,19 @@ import {
   isDesktopRuntime,
   setPetWindowPosition,
 } from '../runtime/desktop-runtime-api';
+import { chooseNextBehavior, getVisualActionForBehavior } from '../runtime/pet-life-behavior';
+import {
+  DESKTOP_WALK_STEP_PX,
+  PREVIEW_WALK_BOUNDARY_PX,
+  PREVIEW_WALK_STEP_PX,
+  getLaneY,
+} from '../runtime/pet-life-layout';
+import { getDueReminderMessage } from '../runtime/pet-life-reminder';
 
 const WORK_SESSION_STARTED_AT_KEY = 'momo.workSessionStartedAt';
 const LAST_REST_REMINDER_AT_KEY = 'momo.lastRestReminderAt';
-const WORK_REMINDER_AFTER_MS = 50 * 60 * 1000;
-const NIGHT_REMINDER_AFTER_MS = 30 * 60 * 1000;
-const REST_REMINDER_COOLDOWN_MS = 45 * 60 * 1000;
 const BEHAVIOR_INTERVAL_MS = 12000;
 const MOVEMENT_INTERVAL_MS = 1400;
-const DESKTOP_WALK_STEP_PX = 20;
-const PREVIEW_WALK_STEP_PX = 18;
-const PREVIEW_WALK_BOUNDARY_PX = 46;
-const TOP_LANE_MARGIN_PX = 36;
-const BOTTOM_LANE_MARGIN_PX = 72;
 
 interface UsePetLifeSystemOptions {
   /** 当前宠物状态，影响睡觉、玩耍等自主行为权重。 */
@@ -74,11 +74,14 @@ export function usePetLifeSystem({ state, isPaused }: UsePetLifeSystemOptions): 
       return undefined;
     }
     const intervalId = window.setInterval(() => {
-      const reminder = getDueReminderMessage(Date.now());
+      const now = Date.now();
+      const startedAt = readNumber(WORK_SESSION_STARTED_AT_KEY) ?? now;
+      const lastReminderAt = readNumber(LAST_REST_REMINDER_AT_KEY) ?? 0;
+      const reminder = getDueReminderMessage(now, startedAt, lastReminderAt);
       if (reminder) {
         setBehavior('remind');
         setReminderMessage(reminder);
-        saveNumber(LAST_REST_REMINDER_AT_KEY, Date.now());
+        saveNumber(LAST_REST_REMINDER_AT_KEY, now);
         return;
       }
       setReminderMessage(null);
@@ -138,55 +141,6 @@ export function usePetLifeSystem({ state, isPaused }: UsePetLifeSystemOptions): 
   };
 }
 
-function chooseNextBehavior(state: PetState | null): PetLifeBehavior {
-  if (state && state.energy <= 24) {
-    return weightedPick([
-      ['sleep', 58],
-      ['rest', 24],
-      ['idle', 18],
-    ]);
-  }
-  if (state && state.mood >= 72) {
-    return weightedPick([
-      ['walk', 34],
-      ['play', 30],
-      ['idle', 24],
-      ['rest', 12],
-    ]);
-  }
-  return weightedPick([
-    ['idle', 38],
-    ['walk', 32],
-    ['rest', 18],
-    ['play', 12],
-  ]);
-}
-
-function weightedPick(items: readonly (readonly [PetLifeBehavior, number])[]): PetLifeBehavior {
-  const totalWeight = items.reduce((sum, [, weight]) => sum + weight, 0);
-  let cursor = Math.random() * totalWeight;
-  for (const [behavior, weight] of items) {
-    cursor -= weight;
-    if (cursor <= 0) {
-      return behavior;
-    }
-  }
-  return 'idle';
-}
-
-function getVisualActionForBehavior(behavior: PetLifeBehavior): PetVisualAction | null {
-  if (behavior === 'play' || behavior === 'remind') {
-    return 'happy';
-  }
-  if (behavior === 'sleep') {
-    return 'sleep';
-  }
-  if (behavior === 'rest') {
-    return 'lying';
-  }
-  return null;
-}
-
 async function moveNativePetWindow(
   direction: PetLifeDirection,
   lane: 'top' | 'bottom',
@@ -212,43 +166,10 @@ async function moveNativePetWindow(
   await setPetWindowPosition(boundedX, nextY);
 }
 
-function getLaneY(
-  monitorY: number,
-  monitorHeight: number,
-  windowHeight: number,
-  lane: 'top' | 'bottom',
-): number {
-  if (lane === 'top') {
-    return monitorY + TOP_LANE_MARGIN_PX;
-  }
-  return monitorY + monitorHeight - windowHeight - BOTTOM_LANE_MARGIN_PX;
-}
-
 function ensureWorkSessionStarted(): void {
   if (!readNumber(WORK_SESSION_STARTED_AT_KEY)) {
     saveNumber(WORK_SESSION_STARTED_AT_KEY, Date.now());
   }
-}
-
-function getDueReminderMessage(now: number): string | null {
-  const startedAt = readNumber(WORK_SESSION_STARTED_AT_KEY) ?? now;
-  const lastReminderAt = readNumber(LAST_REST_REMINDER_AT_KEY) ?? 0;
-  if (now - lastReminderAt < REST_REMINDER_COOLDOWN_MS) {
-    return null;
-  }
-  const workDurationMs = now - startedAt;
-  if (isNightWork(now) && workDurationMs >= NIGHT_REMINDER_AFTER_MS) {
-    return '夜深啦，陪你再做一小段就休息吧。';
-  }
-  if (workDurationMs >= WORK_REMINDER_AFTER_MS) {
-    return '已经专注很久啦，起来喝口水伸个懒腰吧。';
-  }
-  return null;
-}
-
-function isNightWork(now: number): boolean {
-  const hour = new Date(now).getHours();
-  return hour >= 23 || hour < 6;
 }
 
 function readNumber(key: string): number | null {

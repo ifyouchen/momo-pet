@@ -39,7 +39,7 @@ const failureColumns: ReadonlyArray<DataTableColumn<AiTaskSummary>> = [
  */
 export function DashboardPage() {
   const navigate = useNavigate();
-  const { state, refetch } = useAsync({ fetcher: getDashboardMetrics });
+  const { state, refetch } = useAsync({ fetcher: (signal) => getDashboardMetrics({ signal }) });
 
   if (state.status === 'loading' || state.status === 'idle') {
     return (

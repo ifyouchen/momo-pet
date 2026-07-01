@@ -27,7 +27,7 @@ export function PetsListPage() {
   const [status, setStatus] = useState('');
   const [page, setPage] = useState(0);
   const { state, refetch } = useAsync({
-    fetcher: () => listPets({ species, status, page, size: 20 }),
+    fetcher: (signal) => listPets({ species, status, page, size: 20 }, { signal }),
     deps: [species, status, page],
   });
 

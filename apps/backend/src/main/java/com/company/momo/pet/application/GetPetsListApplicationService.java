@@ -1,12 +1,11 @@
 package com.company.momo.pet.application;
 
+import com.company.momo.pet.domain.Pet;
 import com.company.momo.pet.domain.PetRepository;
 import com.company.momo.pet.domain.PetStatus;
 import com.company.momo.pet.domain.Species;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import com.company.momo.platform.domain.PageQuery;
+import com.company.momo.platform.domain.PageResult;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,11 +39,10 @@ public class GetPetsListApplicationService {
         PetStatus status = statusRaw == null || statusRaw.isBlank() ? null : PetStatus.valueOf(statusRaw);
         int resolvedPage = Math.max(0, page);
         int resolvedSize = size <= 0 ? DEFAULT_PAGE_SIZE : Math.min(size, MAX_PAGE_SIZE);
-        Pageable pageable = PageRequest.of(resolvedPage, resolvedSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<com.company.momo.pet.domain.Pet> result = petRepository.findPets(species, status, pageable);
+        PageResult<Pet> result = petRepository.findPets(species, status, new PageQuery(resolvedPage, resolvedSize));
         return new PetListResult(
-            result.getContent().stream().map(PetDetailResult::from).toList(),
-            result.getTotalElements(),
+            result.items().stream().map(PetDetailResult::from).toList(),
+            result.total(),
             resolvedPage,
             resolvedSize
         );

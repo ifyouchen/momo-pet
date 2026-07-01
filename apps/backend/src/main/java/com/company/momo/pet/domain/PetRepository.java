@@ -1,8 +1,9 @@
 package com.company.momo.pet.domain;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import com.company.momo.platform.domain.PageQuery;
+import com.company.momo.platform.domain.PageResult;
 
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -30,10 +31,10 @@ public interface PetRepository {
      *
      * @param species 物种过滤，可空
      * @param status 状态过滤，可空
-     * @param pageable 分页
-     * @return 宠物分页
+     * @param pageQuery 分页参数
+     * @return 宠物分页结果
      */
-    Page<Pet> findPets(Species species, PetStatus status, Pageable pageable);
+    PageResult<Pet> findPets(Species species, PetStatus status, PageQuery pageQuery);
 
     /**
      * 按状态统计宠物数量。
@@ -42,4 +43,18 @@ public interface PetRepository {
      * @return 数量
      */
     long countByStatus(PetStatus status);
+
+    /**
+     * 统计所有宠物数量。
+     *
+     * @return 数量
+     */
+    long count();
+
+    /**
+     * 按宠物状态聚合统计数量。
+     *
+     * @return 状态分组统计结果
+     */
+    List<PetStatusCount> countPetsGroupedByStatus();
 }

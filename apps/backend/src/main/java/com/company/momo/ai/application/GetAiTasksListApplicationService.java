@@ -1,6 +1,5 @@
 package com.company.momo.ai.application;
 
-import com.company.momo.ai.domain.AiGenerationTask;
 import com.company.momo.ai.domain.AiGenerationTaskRepository;
 import com.company.momo.ai.domain.AiTaskStatus;
 import com.company.momo.ai.domain.AiTaskType;
@@ -44,22 +43,8 @@ public class GetAiTasksListApplicationService {
         AiGenerationTaskRepository.TaskPage taskPage = aiGenerationTaskRepository.findTasks(
             status, taskType, resolvedPage, resolvedSize
         );
-        List<AiTaskSummaryResult> items = taskPage.items().stream()
-            .map(GetAiTasksListApplicationService::toSummary)
-            .toList();
+        List<AiTaskSummaryResult> items = AiTaskSummaryAssembler.toSummaries(taskPage.items());
         return new AiTaskListResult(items, taskPage.total(), taskPage.page(), taskPage.size());
-    }
-
-    private static AiTaskSummaryResult toSummary(AiGenerationTask task) {
-        return new AiTaskSummaryResult(
-            task.id().value(),
-            task.petId().value(),
-            task.taskType().name(),
-            task.status().name(),
-            task.errorCode() == null ? null : task.errorCode().name(),
-            task.createdAt(),
-            task.updatedAt()
-        );
     }
 
     private static AiTaskStatus parseStatus(String value) {

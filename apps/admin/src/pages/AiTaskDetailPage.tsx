@@ -12,7 +12,10 @@ import { useAsync } from '../hooks/use-async';
  */
 export function AiTaskDetailPage() {
   const { taskId = '' } = useParams<{ taskId: string }>();
-  const { state, refetch } = useAsync({ fetcher: () => getAiTask(taskId), deps: [taskId] });
+  const { state, refetch } = useAsync({
+    fetcher: (signal) => getAiTask(taskId, { signal }),
+    deps: [taskId],
+  });
 
   if (state.status === 'loading' || state.status === 'idle') {
     return (

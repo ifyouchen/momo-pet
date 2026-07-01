@@ -16,14 +16,24 @@ import java.net.http.HttpResponse;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * chat Infrastructure 层 DeepSeek 回复网关，用于 Sprint 6 基础聊天主路径。
+ *
+ * 健壮性约定：
+ * - IOException / 429 / 502 / 503 / 504 自动重试 1 次。
+ * - 连续失败达到 CIRCUIT_FAILURE_THRESHOLD 后开启熔断，CIRCUIT_OPEN_MS 内直接拒绝。
+ * - 不在日志中输出 API key；状态码单独记录便于排查。
  */
 @Component
 class DeepSeekChatReplyGateway implements ChatReplyGateway {
 
     private static final int MAX_REPLY_LENGTH = 80;
+    private static final int MAX_RETRY_COUNT = 1;
+    private static final int CIRCUIT_FAILURE_THRESHOLD = 3;
+    private static final long CIRCUIT_OPEN_MS = 30_000L;
+    private static final Set<Integer> RETRYABLE_STATUS_CODES = Set.of(429, 502, 503, 504);
 
     private final ObjectMapper objectMapper;
     private final HttpClient httpClient;
@@ -31,6 +41,7 @@ class DeepSeekChatReplyGateway implements ChatReplyGateway {
     private final String baseUrl;
     private final String model;
     private final Duration timeout;
+    private final DeepSeekCircuitBreaker circuitBreaker;
 
     DeepSeekChatReplyGateway(
         ObjectMapper objectMapper,
@@ -45,6 +56,7 @@ class DeepSeekChatReplyGateway implements ChatReplyGateway {
         this.baseUrl = trimTrailingSlash(baseUrl);
         this.model = model;
         this.timeout = Duration.ofMillis(timeoutMs);
+        this.circuitBreaker = new DeepSeekCircuitBreaker(CIRCUIT_FAILURE_THRESHOLD, CIRCUIT_OPEN_MS);
     }
 
     /**
@@ -62,25 +74,46 @@ class DeepSeekChatReplyGateway implements ChatReplyGateway {
     }
 
     private String requestDeepSeekReply(Pet pet, PetState state, String userMessage) {
-        try {
-            HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(baseUrl + "/chat/completions"))
-                .timeout(timeout)
-                .header("Content-Type", "application/json")
-                .header("Authorization", "Bearer " + apiKey)
-                .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody(pet, state, userMessage))))
-                .build();
-            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
-            if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                throw new IllegalStateException("DeepSeek request failed with status " + response.statusCode());
+        circuitBreaker.rejectIfOpen();
+        IllegalStateException lastError = null;
+        for (int attempt = 0; attempt <= MAX_RETRY_COUNT; attempt += 1) {
+            try {
+                String reply = doRequest(pet, state, userMessage);
+                circuitBreaker.recordSuccess();
+                return reply;
+            } catch (IOException exception) {
+                lastError = new IllegalStateException("DeepSeek request failed", exception);
+            } catch (DeepSeekHttpException exception) {
+                lastError = exception;
+                if (!RETRYABLE_STATUS_CODES.contains(exception.statusCode())) {
+                    circuitBreaker.recordFailure();
+                    throw exception;
+                }
+            } catch (InterruptedException exception) {
+                Thread.currentThread().interrupt();
+                circuitBreaker.recordFailure();
+                throw new IllegalStateException("DeepSeek request interrupted", exception);
             }
-            return normalizeReply(parseReply(response.body()));
-        } catch (IOException exception) {
-            throw new IllegalStateException("DeepSeek request failed", exception);
-        } catch (InterruptedException exception) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("DeepSeek request interrupted", exception);
         }
+        circuitBreaker.recordFailure();
+        throw lastError;
+    }
+
+    private String doRequest(Pet pet, PetState state, String userMessage)
+        throws IOException, InterruptedException {
+        HttpRequest request = HttpRequest.newBuilder()
+            .uri(URI.create(baseUrl + "/chat/completions"))
+            .timeout(timeout)
+            .header("Content-Type", "application/json")
+            .header("Authorization", "Bearer " + apiKey)
+            .POST(HttpRequest.BodyPublishers.ofString(objectMapper.writeValueAsString(requestBody(pet, state, userMessage))))
+            .build();
+        HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+        int statusCode = response.statusCode();
+        if (statusCode < 200 || statusCode >= 300) {
+            throw new DeepSeekHttpException(statusCode, "DeepSeek request failed with status " + statusCode);
+        }
+        return normalizeReply(parseReply(response.body()));
     }
 
     private Map<String, Object> requestBody(Pet pet, PetState state, String userMessage) {

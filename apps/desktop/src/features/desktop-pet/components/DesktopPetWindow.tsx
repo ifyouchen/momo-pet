@@ -1,15 +1,17 @@
-import { EyeOff, Heart, Home, MessageCircle, MoreHorizontal, Trash2, Utensils } from 'lucide-react';
 import type { MouseEvent } from 'react';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useDesktopPetBubble } from '../hooks/use-desktop-pet-bubble';
+import { useDesktopPetToolbar } from '../hooks/use-desktop-pet-toolbar';
 import type { DefaultPetModel } from '../hooks/use-default-pet';
-import { usePetLifeSystem } from '../hooks/use-pet-life-system';
 import { usePetChat } from '../hooks/use-pet-chat';
+import { usePetLifeSystem } from '../hooks/use-pet-life-system';
 import { hidePetWindow, openHomeWindow, startPetWindowDrag } from '../runtime/desktop-runtime-api';
 import type { CareAction } from '../types';
 import { CompactChatInput } from './CompactChatInput';
+import { DesktopPetBubble } from './DesktopPetBubble';
+import { DesktopPetInteractionLayer } from './DesktopPetInteractionLayer';
+import { DesktopPetToolbar } from './DesktopPetToolbar';
 import { MomoPetAvatar } from './MomoPetAvatar';
-import { PetInteractionLayer } from './PetInteractionLayer';
-import { SpeechBubble } from './SpeechBubble';
 import { StateDeltaFloat } from './StateDeltaFloat';
 
 interface DesktopPetWindowProps {
@@ -29,20 +31,13 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   const [activeInteractionMode, setActiveInteractionMode] = useState<CareAction | null>(null);
   const [interactionHint, setInteractionHint] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [isToolbarExpanded, setIsToolbarExpanded] = useState(false);
-  const [isBubbleVisible, setIsBubbleVisible] = useState(true);
-  const [isBubbleAutoHidePaused, setIsBubbleAutoHidePaused] = useState(false);
-  const toolbarHoverTimeoutRef = useRef<number | null>(null);
-  const toolbarHoverSuppressedUntilRef = useRef(0);
+
   const chat = usePetChat({
     petId: model.pet?.petId ?? null,
     onStateChange: model.handleStateChange,
   });
   const isLifeSystemPaused =
-    isChatOpen ||
-    isToolbarExpanded ||
-    activeInteractionMode !== null ||
-    model.activeAction !== null;
+    isChatOpen || activeInteractionMode !== null || model.activeAction !== null;
   const life = usePetLifeSystem({
     state: model.state,
     isPaused: isLifeSystemPaused,
@@ -50,59 +45,36 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
   const latestPetReply = useMemo(() => findLatestPetReply(chat.messages), [chat.messages]);
   const visiblePetReply =
     latestPetReply?.messageId === chat.latestSentPetReplyId ? latestPetReply : null;
+
   const cancelInteractionMode = useCallback(() => {
     setInteractionHint(null);
     setActiveInteractionMode(null);
-    setIsToolbarExpanded(false);
   }, []);
-  const handleSelectInteractionMode = useCallback((action: CareAction) => {
-    setIsChatOpen(false);
-    setIsToolbarExpanded(true);
-    setInteractionHint(null);
-    setActiveInteractionMode(action);
-  }, []);
+
+  const toolbar = useDesktopPetToolbar({ lockExpanded: activeInteractionMode !== null });
+
+  const handleSelectInteractionMode = useCallback(
+    (action: CareAction) => {
+      setIsChatOpen(false);
+      toolbar.openToolbar();
+      setInteractionHint(null);
+      setActiveInteractionMode(action);
+    },
+    [toolbar],
+  );
+
   const handleOpenChat = useCallback(() => {
     setInteractionHint(null);
     setActiveInteractionMode(null);
     setIsChatOpen(true);
-    setIsToolbarExpanded(false);
-  }, []);
+    toolbar.closeToolbar();
+  }, [toolbar]);
+
   const handleCloseChat = useCallback(() => {
-    toolbarHoverSuppressedUntilRef.current = Date.now() + 700;
+    toolbar.closeToolbar();
     setIsChatOpen(false);
-    setIsToolbarExpanded(false);
-  }, []);
-  const handleToggleToolbar = useCallback(() => {
-    setIsToolbarExpanded((current) => !current);
-  }, []);
-  const handlePauseBubbleAutoHide = useCallback(() => {
-    setIsBubbleAutoHidePaused(true);
-  }, []);
-  const handleResumeBubbleAutoHide = useCallback(() => {
-    setIsBubbleAutoHidePaused(false);
-  }, []);
-  const clearToolbarHoverTimeout = useCallback(() => {
-    if (toolbarHoverTimeoutRef.current !== null) {
-      window.clearTimeout(toolbarHoverTimeoutRef.current);
-      toolbarHoverTimeoutRef.current = null;
-    }
-  }, []);
-  const handleToolbarMouseEnter = useCallback(() => {
-    clearToolbarHoverTimeout();
-    if (Date.now() < toolbarHoverSuppressedUntilRef.current) {
-      return;
-    }
-    toolbarHoverTimeoutRef.current = window.setTimeout(() => {
-      setIsToolbarExpanded(true);
-      toolbarHoverTimeoutRef.current = null;
-    }, 120);
-  }, [clearToolbarHoverTimeout]);
-  const handleToolbarMouseLeave = useCallback(() => {
-    clearToolbarHoverTimeout();
-    if (!activeInteractionMode) {
-      setIsToolbarExpanded(false);
-    }
-  }, [activeInteractionMode, clearToolbarHoverTimeout]);
+  }, [toolbar]);
+
   const bubbleMessage =
     runtimeWarning ??
     interactionHint ??
@@ -124,6 +96,13 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
         ? 12000
         : 3000;
   const bubbleKey = `${bubbleTone}:${visiblePetReply?.messageId ?? bubbleMessage ?? ''}`;
+
+  const bubble = useDesktopPetBubble({
+    message: bubbleMessage,
+    defaultDurationMs: bubbleDurationMs,
+    resetKey: bubbleKey,
+  });
+
   const visualAction =
     model.visualAction === 'idle' && life.visualAction ? life.visualAction : model.visualAction;
 
@@ -131,29 +110,9 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
     if (activeInteractionMode || event.button !== 0 || isInteractiveElement(event.target)) {
       return;
     }
-    setIsToolbarExpanded(false);
+    toolbar.closeToolbar();
     void startPetWindowDrag();
   };
-
-  useEffect(() => clearToolbarHoverTimeout, [clearToolbarHoverTimeout]);
-
-  useEffect(() => {
-    setIsBubbleAutoHidePaused(false);
-  }, [bubbleKey]);
-
-  useEffect(() => {
-    if (!bubbleMessage) {
-      setIsBubbleVisible(false);
-      setIsBubbleAutoHidePaused(false);
-      return undefined;
-    }
-    setIsBubbleVisible(true);
-    if (bubbleDurationMs === null || isBubbleAutoHidePaused) {
-      return undefined;
-    }
-    const timeoutId = window.setTimeout(() => setIsBubbleVisible(false), bubbleDurationMs);
-    return () => window.clearTimeout(timeoutId);
-  }, [bubbleDurationMs, bubbleKey, bubbleMessage, isBubbleAutoHidePaused]);
 
   return (
     <main
@@ -169,20 +128,19 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
       >
         <StateDeltaFloat deltas={model.stateDeltas} />
         <MomoPetAvatar action={visualAction} direction={life.direction} />
-        {isBubbleVisible && bubbleMessage ? (
-          <SpeechBubble
+        {bubble.isBubbleVisible && bubbleMessage ? (
+          <DesktopPetBubble
             message={bubbleMessage}
             tone={bubbleTone}
             variant={isChatOpen && visiblePetReply ? 'chat' : 'feedback'}
-            onPauseAutoHide={handlePauseBubbleAutoHide}
-            onResumeAutoHide={handleResumeBubbleAutoHide}
+            onPauseAutoHide={bubble.handleBubbleMouseEnter}
+            onResumeAutoHide={bubble.handleBubbleMouseLeave}
           />
         ) : null}
-        <PetInteractionLayer
+        <DesktopPetInteractionLayer
           mode={activeInteractionMode}
           canCare={model.canCare}
           isSubmitting={model.activeAction !== null}
-          compact
           onComplete={model.handleCareAction}
           onCancel={cancelInteractionMode}
           onHintChange={setInteractionHint}
@@ -191,86 +149,18 @@ export function DesktopPetWindow({ model, runtimeWarning }: DesktopPetWindowProp
       {isChatOpen ? <CompactChatInput chat={chat} onClose={handleCloseChat} /> : null}
 
       {!isChatOpen && !activeInteractionMode ? (
-        <div
-          className={`pet-window-toolbar-shell${isToolbarExpanded ? ' pet-window-toolbar-expanded' : ''}`}
-          aria-label="桌宠窗口操作"
-          onMouseEnter={handleToolbarMouseEnter}
-          onMouseLeave={handleToolbarMouseLeave}
-        >
-          {isToolbarExpanded ? (
-            <div className="pet-window-toolbar">
-              <button
-                type="button"
-                className="pet-window-tool"
-                aria-label="喂食模式"
-                title="喂食模式"
-                disabled={!model.canCare}
-                onClick={() => handleSelectInteractionMode('feed')}
-              >
-                <Utensils size={17} />
-              </button>
-              <button
-                type="button"
-                className="pet-window-tool"
-                aria-label="抚摸模式"
-                title="抚摸模式"
-                disabled={!model.canCare}
-                onClick={() => handleSelectInteractionMode('touch')}
-              >
-                <Heart size={17} />
-              </button>
-              <button
-                type="button"
-                className="pet-window-tool"
-                aria-label="清理模式"
-                title="清理模式"
-                disabled={!model.canCare}
-                onClick={() => handleSelectInteractionMode('clean')}
-              >
-                <Trash2 size={17} />
-              </button>
-              <button
-                type="button"
-                className="pet-window-tool"
-                aria-label="打开聊天"
-                title="打开聊天"
-                disabled={!model.canCare}
-                onClick={handleOpenChat}
-              >
-                <MessageCircle size={17} />
-              </button>
-              <button
-                type="button"
-                className="pet-window-tool"
-                aria-label="打开主页"
-                title="打开主页"
-                onClick={() => void openHomeWindow()}
-              >
-                <Home size={17} />
-              </button>
-              <button
-                type="button"
-                className="pet-window-tool"
-                aria-label="隐藏桌宠"
-                title="隐藏桌宠"
-                onClick={() => void hidePetWindow()}
-              >
-                <EyeOff size={17} />
-              </button>
-            </div>
-          ) : (
-            <button
-              type="button"
-              className="pet-window-toolbar-trigger"
-              aria-label="展开桌宠工具栏"
-              title="展开桌宠工具栏"
-              onClick={handleToggleToolbar}
-              onFocus={() => setIsToolbarExpanded(true)}
-            >
-              <MoreHorizontal size={18} />
-            </button>
-          )}
-        </div>
+        <DesktopPetToolbar
+          isExpanded={toolbar.isToolbarExpanded}
+          canCare={model.canCare}
+          onToggle={toolbar.handleToolbarToggle}
+          onOpen={toolbar.openToolbar}
+          onSelectCareMode={handleSelectInteractionMode}
+          onOpenChat={handleOpenChat}
+          onOpenHome={() => void openHomeWindow()}
+          onHidePet={() => void hidePetWindow()}
+          onMouseEnter={toolbar.handleToolbarMouseEnter}
+          onMouseLeave={toolbar.handleToolbarMouseLeave}
+        />
       ) : null}
     </main>
   );
