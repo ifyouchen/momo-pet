@@ -113,7 +113,7 @@ public final class AiGenerationTask {
     }
 
     /**
-     * 标记任务失败。
+     * 标记任务执行失败。
      *
      * @param errorCode 失败错误码
      * @return 失败任务
@@ -121,6 +121,19 @@ public final class AiGenerationTask {
     public AiGenerationTask markFailed(AiTaskErrorCode errorCode) {
         ensureStatus(AiTaskStatus.RUNNING);
         return copy(AiTaskStatus.FAILED, null, errorCode);
+    }
+
+    /**
+     * 取消任务。仅 PENDING 和 RUNNING 状态可取消。
+     *
+     * @return 已取消任务
+     * @throws BusinessException 当任务不在可取消状态时抛出 AI_TASK_NOT_CANCELABLE
+     */
+    public AiGenerationTask cancel() {
+        if (status != AiTaskStatus.PENDING && status != AiTaskStatus.RUNNING) {
+            throw new BusinessException(ErrorCode.AI_TASK_NOT_CANCELABLE);
+        }
+        return copy(AiTaskStatus.CANCELED, null, null);
     }
 
     public AiTaskId id() {

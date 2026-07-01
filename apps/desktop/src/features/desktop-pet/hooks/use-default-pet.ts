@@ -1,6 +1,6 @@
 import type { PetProfile, PetState } from '@momo/shared';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { cleanPet, createPet, feedPet, getPet, getPetState, touchPet } from '../api/pet-api';
+import { cleanPet, feedPet, getPet, getPetState, touchPet } from '../api/pet-api';
 import { getStateDeltas } from '../runtime/default-pet-state-deltas';
 import { getSuccessMessage, getVisualActionSequence } from '../runtime/default-pet-visuals';
 import type { CareAction, FeedbackTone, PetVisualAction, StateDelta } from '../types';
@@ -12,6 +12,8 @@ const CHAT_HAPPY_DURATION_MS = 1400;
 const DEFAULT_BOOTSTRAP_MESSAGE = '今天也陪你一起开工。';
 const BOOTSTRAP_SUCCESS_MESSAGE = 'Momo Pet 已准备好啦。';
 const CHAT_SUCCESS_MESSAGE = '我听见你啦。';
+const CLEAN_THRESHOLD = 95;
+const CLEAN_NOT_NEEDED_MESSAGE = '现在很干净。';
 
 interface ActionFeedback {
   readonly tone: FeedbackTone;
@@ -22,6 +24,7 @@ export interface DefaultPetModel {
   readonly pet: PetProfile | null;
   readonly state: PetState | null;
   readonly isBootstrapping: boolean;
+  readonly hasPet: boolean;
   readonly activeAction: CareAction | null;
   readonly feedback: ActionFeedback;
   readonly stateDeltas: readonly StateDelta[];
@@ -30,14 +33,9 @@ export interface DefaultPetModel {
   readonly canCare: boolean;
   readonly handleCareAction: (action: CareAction) => Promise<void>;
   readonly handleStateChange: (state: PetState) => void;
+  readonly setPetAndState: (pet: PetProfile, state: PetState) => void;
 }
 
-/**
- * 管理默认 Momo Pet 的初始化、状态读取和照顾行为。
- *
- * 前置条件：运行环境支持 localStorage。后置条件：返回可直接驱动桌宠主页的视图模型。
- * @throws 不向组件调用方抛出异常，所有错误都会收敛为 feedback。
- */
 export function useDefaultPet(): DefaultPetModel {
   const [pet, setPet] = useState<PetProfile | null>(null);
   const [state, setState] = useState<PetState | null>(null);
@@ -50,6 +48,8 @@ export function useDefaultPet(): DefaultPetModel {
     message: DEFAULT_BOOTSTRAP_MESSAGE,
   });
   const visualTimersRef = useRef<readonly number[]>([]);
+
+  const hasPet = pet !== null;
 
   const canCare = Boolean(pet) && !isBootstrapping && activeAction === null;
   const statusText = useMemo(() => {
@@ -93,17 +93,34 @@ export function useDefaultPet(): DefaultPetModel {
   const bootstrapDefaultPet = useCallback(async () => {
     setIsBootstrapping(true);
     try {
-      const profile = await resolveDefaultPet();
-      window.localStorage.setItem(LOCAL_PET_ID_KEY, profile.petId);
+      const storedPetId = window.localStorage.getItem(LOCAL_PET_ID_KEY);
+      if (!storedPetId) {
+        setIsBootstrapping(false);
+        return;
+      }
+      let profile: PetProfile;
+      try {
+        profile = await getPet(storedPetId);
+      } catch {
+        window.localStorage.removeItem(LOCAL_PET_ID_KEY);
+        setIsBootstrapping(false);
+        return;
+      }
       setPet(profile);
       setState(await getPetState(profile.petId));
       setFeedback({ tone: 'success', message: BOOTSTRAP_SUCCESS_MESSAGE });
-    } catch (error) {
+    } catch {
       window.localStorage.removeItem(LOCAL_PET_ID_KEY);
-      setFeedback({ tone: 'error', message: getErrorMessage(error) });
+      setFeedback({ tone: 'error', message: '连接失败，请确认后端已启动。' });
     } finally {
       setIsBootstrapping(false);
     }
+  }, []);
+
+  const setPetAndState = useCallback((newPet: PetProfile, newState: PetState) => {
+    setPet(newPet);
+    setState(newState);
+    window.localStorage.setItem(LOCAL_PET_ID_KEY, newPet.petId);
   }, []);
 
   const handleCareAction = useCallback(
@@ -114,6 +131,10 @@ export function useDefaultPet(): DefaultPetModel {
       setActiveAction(action);
       setStateDeltas([]);
       try {
+        if (action === 'clean' && state && state.cleanliness >= CLEAN_THRESHOLD) {
+          setFeedback({ tone: 'success', message: CLEAN_NOT_NEEDED_MESSAGE });
+          return;
+        }
         const nextState = await executeCareAction(pet.petId, action);
         setState((previousState) => {
           setStateDeltas(getStateDeltas(previousState, nextState));
@@ -128,7 +149,7 @@ export function useDefaultPet(): DefaultPetModel {
         setActiveAction(null);
       }
     },
-    [activeAction, pet, resetVisualAction, scheduleVisualAction],
+    [activeAction, pet, state, resetVisualAction, scheduleVisualAction],
   );
 
   const handleStateChange = useCallback(
@@ -155,12 +176,11 @@ export function useDefaultPet(): DefaultPetModel {
     return () => window.clearTimeout(timeoutId);
   }, [stateDeltas]);
 
-  useEffect(() => () => clearVisualTimers(), [clearVisualTimers]);
-
   return {
     pet,
     state,
     isBootstrapping,
+    hasPet,
     activeAction,
     feedback,
     stateDeltas,
@@ -169,16 +189,8 @@ export function useDefaultPet(): DefaultPetModel {
     canCare,
     handleCareAction,
     handleStateChange,
+    setPetAndState,
   };
-}
-
-async function resolveDefaultPet(): Promise<PetProfile> {
-  const storedPetId = window.localStorage.getItem(LOCAL_PET_ID_KEY);
-  return storedPetId ? getPet(storedPetId) : createDefaultPet();
-}
-
-function createDefaultPet(): Promise<PetProfile> {
-  return createPet({ name: 'Momo Pet', species: 'CAT', description: '默认 MVP 桌宠' });
 }
 
 function executeCareAction(petId: string, action: CareAction): Promise<PetState> {

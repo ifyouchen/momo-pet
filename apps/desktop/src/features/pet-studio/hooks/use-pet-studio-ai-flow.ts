@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import type { MutableRefObject } from 'react';
 import type { PetDnaDraft, PhotoRole } from '@momo/shared';
 import {
+  cancelAiTask,
   confirmPetDna,
   createPetDnaGenerationTask,
   getAiTask,
@@ -53,22 +54,44 @@ export function usePetStudioAiFlow({
   const [flowMessage, setFlowMessage] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const isCancelledRef = useRef(false);
+  const currentTaskIdRef = useRef<string | null>(null);
+  const isManualFallbackRef = useRef(false);
 
   useEffect(() => {
     isCancelledRef.current = false;
     return () => {
       isCancelledRef.current = true;
+      void cancelCurrentTask();
     };
   }, []);
+
+  async function cancelCurrentTask() {
+    const taskId = currentTaskIdRef.current;
+    if (taskId) {
+      try {
+        await cancelAiTask(taskId);
+      } catch {
+        // 取消失败不阻塞关闭
+      }
+      currentTaskIdRef.current = null;
+    }
+  }
 
   const handleContinue = useCallback(async () => {
     if (draft.blockingMessage) {
       return;
     }
+    isManualFallbackRef.current = false;
     setIsSubmitting(true);
     setFlowMessage(null);
     try {
-      const aiDraft = await uploadPhotosAndGenerateDraft(petId, draft, setStep, isCancelledRef);
+      const aiDraft = await uploadPhotosAndGenerateDraft(
+        petId,
+        draft,
+        setStep,
+        isCancelledRef,
+        currentTaskIdRef,
+      );
       draft.updateDna(toManualDna(aiDraft));
       setStep('confirm');
     } catch (error) {
@@ -84,7 +107,7 @@ export function usePetStudioAiFlow({
     setFlowMessage(null);
     try {
       await confirmPetDna(petId, {
-        source: step === 'ai-failed' ? 'MANUAL' : 'AI',
+        source: isManualFallbackRef.current ? 'MANUAL' : 'AI',
         dna: toPetDnaDraft(draft.dna),
       });
       onDone();
@@ -93,7 +116,7 @@ export function usePetStudioAiFlow({
     } finally {
       setIsSubmitting(false);
     }
-  }, [draft.dna, onDone, petId, step]);
+  }, [draft.dna, onDone, petId]);
 
   return {
     step,
@@ -103,11 +126,13 @@ export function usePetStudioAiFlow({
     handleContinue,
     handleConfirm,
     handleManualFallback: () => {
+      isManualFallbackRef.current = true;
       setFlowMessage(null);
       setStep('confirm');
     },
     cancelFlow: () => {
       isCancelledRef.current = true;
+      void cancelCurrentTask();
     },
   };
 }
@@ -117,6 +142,7 @@ async function uploadPhotosAndGenerateDraft(
   draft: PetStudioDraftModel,
   setStep: (step: PetStudioStep) => void,
   isCancelledRef: MutableRefObject<boolean>,
+  currentTaskIdRef: MutableRefObject<string | null>,
 ): Promise<PetDnaDraft> {
   setStep('uploading');
   const uploadedAssets = await Promise.all(
@@ -136,13 +162,15 @@ async function uploadPhotosAndGenerateDraft(
       .map((asset) => asset.assetId),
     userDescription: draft.description,
   });
-  return pollPetDnaTask(task.taskId, isCancelledRef);
+  return pollPetDnaTask(task.taskId, isCancelledRef, currentTaskIdRef);
 }
 
 async function pollPetDnaTask(
   taskId: string,
   isCancelledRef: MutableRefObject<boolean>,
+  currentTaskIdRef: MutableRefObject<string | null>,
 ): Promise<PetDnaDraft> {
+  currentTaskIdRef.current = taskId;
   const startedAt = Date.now();
   while (!isCancelledRef.current && Date.now() - startedAt < 60000) {
     const task = await getAiTask(taskId);
@@ -152,8 +180,13 @@ async function pollPetDnaTask(
     if (task.status === 'FAILED' || task.status === 'TIMEOUT') {
       throw new Error(task.errorCode ?? 'AI_GENERATION_FAILED');
     }
+    if (task.status === 'CANCELED') {
+      currentTaskIdRef.current = null;
+      throw new Error('AI_TASK_CANCELED');
+    }
     await wait(1500);
   }
+  currentTaskIdRef.current = null;
   throw new Error('AI_GENERATION_TIMEOUT');
 }
 

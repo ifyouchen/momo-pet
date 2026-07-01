@@ -10,7 +10,6 @@ import java.time.LocalDate;
 public record CreatePetRequest(
     @NotBlank String name,
     @NotBlank String species,
-    LocalDate birthday,
-    String description
+    LocalDate birthday
 ) {
 }

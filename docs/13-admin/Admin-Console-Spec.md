@@ -4,6 +4,27 @@
 
 后台管理控制台用于运营、排障、AI 任务观察和资源管理。它不是用户侧产品体验，不使用可爱化视觉，而使用安静、高效、可扫描的管理界面。
 
+## MVP 范围 vs 后续版本
+
+### MVP 必做（Sprint 7）
+
+- Dashboard：展示核心健康指标。
+- Pets 列表：分页、按 species/status 过滤。
+- Pet Detail：Overview、Pet DNA、State 三个标签页。
+- AI Tasks 列表：按 status/taskType 过滤。
+- AI Task Detail：展示错误原因、状态、耗时。
+
+### 后续版本（非 MVP）
+
+- Users
+- Pet DNA 独立管理页
+- Assets
+- Care Events
+- Chat Logs
+- Prompt Library
+- Analytics
+- System Settings
+
 ## 使用对象
 
 - 产品负责人
@@ -20,21 +41,21 @@
 - 不展示敏感签名 URL、Token 或完整 Prompt。
 - 后台操作必须留审计记录。
 
-## 一级导航
+## 一级导航（含后续版本）
 
 ```text
 Admin
-├── Dashboard
-├── Users
-├── Pets
-├── Pet DNA
-├── AI Tasks
-├── Assets
-├── Care Events
-├── Chat Logs
-├── Prompt Library
-├── Analytics
-└── System Settings
+├── Dashboard（MVP）
+├── Pets（MVP）
+├── AI Tasks（MVP）
+├── Pet DNA（后续）
+├── Users（后续）
+├── Assets（后续）
+├── Care Events（后续）
+├── Chat Logs（后续）
+├── Prompt Library（后续）
+├── Analytics（后续）
+└── System Settings（后续）
 ```
 
 ## Dashboard

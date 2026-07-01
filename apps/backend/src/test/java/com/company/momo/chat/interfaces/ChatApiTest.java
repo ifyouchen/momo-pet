@@ -48,6 +48,30 @@ class ChatApiTest {
     }
 
     @Test
+    void chat_whenContentLengthIs500_shouldSucceed() throws Exception {
+        String petId = createPet("500 Chat Cat");
+        String content500 = "a".repeat(500);
+
+        mockMvc.perform(post("/api/pets/{petId}/chat/messages", petId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"content\":\"" + content500 + "\"}"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void chat_whenContentLengthIs501_shouldReturnChatMessageTooLong() throws Exception {
+        String petId = createPet("501 Chat Cat");
+        String content501 = "a".repeat(501);
+
+        mockMvc.perform(post("/api/pets/{petId}/chat/messages", petId)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{\"content\":\"" + content501 + "\"}"))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value("VALIDATION_FAILED"));
+    }
+
+    @Test
     void shouldReturnFallbackReplyWhenChatGatewayFails() throws Exception {
         String petId = createPet("Fallback Chat Cat");
 

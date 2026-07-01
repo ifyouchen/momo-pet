@@ -153,10 +153,11 @@ flowchart TD
 MVP 设置：
 
 - 显示/隐藏桌宠
-- 开机启动开关
 - 主动提醒开关
 - 减少动画
 - 退出应用
+
+> 开机启动开关不在 MVP 范围内，参见 `docs/01-product/MVP.md`。
 
 ## ErrorPanel
 

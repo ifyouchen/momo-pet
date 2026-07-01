@@ -1,6 +1,8 @@
 package com.company.momo.ai.interfaces;
 
+import com.company.momo.ai.application.AiTaskDetailResult;
 import com.company.momo.ai.application.AiTaskListResult;
+import com.company.momo.ai.application.CancelAiTaskApplicationService;
 import com.company.momo.ai.application.CreatePetDnaTaskApplicationService;
 import com.company.momo.ai.application.CreatePetDnaTaskCommand;
 import com.company.momo.ai.application.GetAiTaskApplicationService;
@@ -17,7 +19,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 /**
- * ai Interface 层 Controller，负责 Pet DNA 任务创建、任务查询和任务列表。
+ * ai Interface 层 Controller，负责 Pet DNA 任务创建、查询、列表和取消。
  */
 @RestController
 public class AiTaskController {
@@ -25,15 +27,18 @@ public class AiTaskController {
     private final CreatePetDnaTaskApplicationService createPetDnaTaskApplicationService;
     private final GetAiTaskApplicationService getAiTaskApplicationService;
     private final GetAiTasksListApplicationService getAiTasksListApplicationService;
+    private final CancelAiTaskApplicationService cancelAiTaskApplicationService;
 
     public AiTaskController(
         CreatePetDnaTaskApplicationService createPetDnaTaskApplicationService,
         GetAiTaskApplicationService getAiTaskApplicationService,
-        GetAiTasksListApplicationService getAiTasksListApplicationService
+        GetAiTasksListApplicationService getAiTasksListApplicationService,
+        CancelAiTaskApplicationService cancelAiTaskApplicationService
     ) {
         this.createPetDnaTaskApplicationService = createPetDnaTaskApplicationService;
         this.getAiTaskApplicationService = getAiTaskApplicationService;
         this.getAiTasksListApplicationService = getAiTasksListApplicationService;
+        this.cancelAiTaskApplicationService = cancelAiTaskApplicationService;
     }
 
     /**
@@ -67,6 +72,18 @@ public class AiTaskController {
     @GetMapping("/api/ai/tasks/{taskId}")
     public ApiResponse<AiTaskResponse> getAiTask(@PathVariable String taskId) {
         return ApiResponse.success(AiTaskResponse.from(getAiTaskApplicationService.getTask(taskId)));
+    }
+
+    /**
+     * 取消 AI 任务。仅 PENDING 和 RUNNING 状态可取消。
+     *
+     * @param taskId AI 任务 ID
+     * @return 取消后的任务详情
+     */
+    @PostMapping("/api/ai/tasks/{taskId}/cancel")
+    public ApiResponse<AiTaskResponse> cancelAiTask(@PathVariable String taskId) {
+        AiTaskDetailResult result = cancelAiTaskApplicationService.cancel(taskId);
+        return ApiResponse.success(AiTaskResponse.from(result));
     }
 
     /**

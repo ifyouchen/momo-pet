@@ -33,7 +33,7 @@ export function PetStudioView({ petId, onClose, onDone }: PetStudioViewProps) {
       <header className="pet-studio-header">
         <div>
           <span>Pet Studio</span>
-          <h2>创建它的数字身份</h2>
+          <h2>编辑数字身份</h2>
         </div>
         <button type="button" aria-label="关闭 Pet Studio" onClick={handleClose}>
           <X size={18} />

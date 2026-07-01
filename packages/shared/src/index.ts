@@ -45,13 +45,13 @@ export interface PetState {
 }
 
 /**
- * Create pet request used by the desktop default pet bootstrap flow.
+ * Create pet request.
+ * description 不在此处传递，而是作为 userDescription 传入 Pet DNA 生成任务。
  */
 export interface CreatePetRequest {
   name: string;
   species: Species;
   birthday?: string;
-  description?: string;
 }
 
 /**
@@ -121,7 +121,7 @@ export interface CreateAiTaskResponse {
 /**
  * AI task status values used by polling UI.
  */
-export type AiTaskStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'TIMEOUT';
+export type AiTaskStatus = 'PENDING' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'TIMEOUT' | 'CANCELED';
 
 /**
  * MVP Pet DNA draft returned by AI task.
@@ -184,6 +184,11 @@ export interface ConfirmPetDnaResponse {
   petId: string;
   version: number;
 }
+
+/**
+ * 聊天消息最大长度，来自 PRD 基础聊天输入限制。
+ */
+export const CHAT_MESSAGE_MAX_LENGTH = 500;
 
 /**
  * Chat message role used by Sprint 6 basic chat APIs.

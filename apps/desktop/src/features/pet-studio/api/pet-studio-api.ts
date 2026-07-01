@@ -10,6 +10,22 @@ import type {
 } from '@momo/shared';
 
 /**
+ * 取消 AI 任务。仅 PENDING 和 RUNNING 状态可取消。
+ *
+ * @param taskId AI 任务 ID
+ * @throws ApiError 当取消失败或后端返回业务错误时抛出
+ */
+export function cancelAiTask(
+  taskId: string,
+  options: { readonly signal?: AbortSignal } = {},
+): Promise<AiTaskResponse> {
+  return request<AiTaskResponse>(`/api/ai/tasks/${taskId}/cancel`, {
+    method: 'POST',
+    signal: options.signal,
+  });
+}
+
+/**
  * 上传单张宠物照片。
  *
  * 前置条件：file 已通过前端本地校验。后置条件：返回后端持久化 asset 元数据。

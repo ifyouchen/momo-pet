@@ -1,3 +1,4 @@
+import { CHAT_MESSAGE_MAX_LENGTH } from '@momo/shared';
 import { Send, X } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import type { FormEvent } from 'react';
@@ -69,7 +70,7 @@ export function ChatPanel({ petName, chat, onClose }: ChatPanelProps) {
       <form className="chat-input-row" onSubmit={handleSubmit}>
         <input
           aria-label="聊天输入"
-          maxLength={300}
+          maxLength={CHAT_MESSAGE_MAX_LENGTH}
           placeholder="今天工作好累"
           value={chat.draft}
           onChange={(event) => chat.setDraft(event.target.value)}

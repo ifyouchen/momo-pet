@@ -38,8 +38,7 @@
 {
   "name": "奶糖",
   "species": "CAT",
-  "birthday": "2026-06-28",
-  "description": "有点傲娇，喜欢睡觉"
+  "birthday": "2026-06-28"
 }
 ```
 
@@ -137,12 +136,14 @@ primaryPhotoAssetId 必填，referencePhotoAssetIds 最多 4 个。
 
 查询 AI 任务。
 
+状态枚举：PENDING、RUNNING、SUCCEEDED、FAILED、TIMEOUT、CANCELED。
+
 响应 data：
 
 ```json
 {
   "taskId": "task_001",
-  "taskType": "PET_DNA",
+  "taskType": "PET_DNA_GENERATION",
   "status": "SUCCEEDED",
   "result": {
     "petDnaDraftId": "dna_draft_001"
@@ -150,6 +151,27 @@ primaryPhotoAssetId 必填，referencePhotoAssetIds 最多 4 个。
   "errorCode": null
 }
 ```
+
+## POST /api/ai/tasks/{taskId}/cancel
+
+取消 AI 任务。仅 PENDING 和 RUNNING 状态可取消。
+
+响应 data：
+
+```json
+{
+  "taskId": "task_001",
+  "taskType": "PET_DNA_GENERATION",
+  "status": "CANCELED",
+  "result": null,
+  "errorCode": null
+}
+```
+
+错误码：
+
+- AI_TASK_NOT_FOUND
+- AI_TASK_NOT_CANCELABLE
 
 ## GET /api/pets/{petId}/dna/latest
 
@@ -328,7 +350,7 @@ primaryPhotoAssetId 必填，referencePhotoAssetIds 最多 4 个。
 
 ## POST /api/pets/{petId}/chat/messages
 
-发送聊天消息。
+发送聊天消息。content 长度不超过 500 个字符（Bean Validation @Size(max = 500)）。
 
 请求：
 

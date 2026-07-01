@@ -106,6 +106,11 @@ public enum ErrorCode {
     AI_RESULT_INVALID("AI 结果暂时不可用"),
 
     /**
+     * AI 任务当前状态不允许取消。
+     */
+    AI_TASK_NOT_CANCELABLE("该任务无法取消"),
+
+    /**
      * 用户确认的 Pet DNA 未通过业务校验。
      */
     PET_DNA_INVALID("Pet DNA 信息不完整"),

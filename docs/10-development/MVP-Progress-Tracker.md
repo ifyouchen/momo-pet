@@ -21,7 +21,7 @@
 | Sprint 4 | Pet Studio                 | Review      | No                      |
 | Sprint 5 | AI Pet DNA 任务            | Done        | Yes                     |
 | Sprint 6 | 基础聊天                   | Review      | No                      |
-| Sprint 7 | 后台 MVP                   | Not Started | No                      |
+| Sprint 7 | 后台 MVP                   | Review      | No                      |
 | Sprint 8 | Beta 验收                  | Not Started | No                      |
 
 说明：
@@ -29,7 +29,7 @@
 - Sprint 0 到 Sprint 6 是用户侧 MVP 主闭环。
 - Sprint 7 是内部后台支撑，不得影响用户侧主闭环交付。
 - Sprint 3 的交互模式只服务于喂食、抚摸、铲屎三个既有 MVP 功能，不新增玩具、追逐、宠物交友等范围。
-- 当前质量基线：`pnpm lint`、`pnpm format:check`、`pnpm build:packages`、`pnpm build:desktop`、`pnpm build:admin` 通过；`cargo check --locked` 和 `pnpm --filter @momo/desktop tauri:dev` 在 macOS 通过；后端在 JDK 21 下 `mvn test` 通过。
+- 当前质量基线：`pnpm lint`、`pnpm format:check`、`pnpm build:packages`、`pnpm build:desktop`、`pnpm build:admin` 通过；`cargo check --locked` 和 `pnpm --filter @momo/desktop tauri:dev` 在 macOS 通过；后端在 JDK 21 下 `mvn test` 通过（38 个测试，含 AI cancel 领域测试 5 个、Chat 500/501 长度测试 2 个）。
 
 ## Sprint 0：工程骨架
 
@@ -112,13 +112,18 @@
 
 ## Sprint 7：后台 MVP
 
-| 任务          | 状态        | 依赖       | 验收标准         |
-| ------------- | ----------- | ---------- | ---------------- |
-| Dashboard     | Not Started | Admin 工程 | 展示核心指标     |
-| Pets 列表     | Not Started | Pet API    | 可查看宠物       |
-| Pet Detail    | Not Started | Pet API    | 可查看状态/DNA   |
-| AI Tasks 列表 | Not Started | AI API     | 可查看任务状态   |
-| 失败详情      | Not Started | AI Tasks   | 可查看 errorCode |
+| 任务          | 状态   | 依赖       | 验收标准           |
+| ------------- | ------ | ---------- | ------------------ |
+| Dashboard     | Review | Admin 工程 | 展示核心指标       |
+| Pets 列表     | Review | Pet API    | 可查看宠物         |
+| Pet Detail    | Review | Pet API    | 可查看状态/DNA     |
+| AI Tasks 列表 | Review | AI API     | 可查看任务状态     |
+| 失败详情      | Review | AI Tasks   | 可查看 errorCode   |
+| AI Task 取消  | Review | AI API     | 可取消 PENDING/RUNNING 任务 |
+| 聊天长度 500  | Review | Chat API   | 500 字正常发送，超过 501 被拒 |
+| DNA 来源修正  | Review | 前端       | 跳过照片/AI 失败后 source=MANUAL，AI 成功后 source=AI |
+| 首启 Onboarding | Review | 前端     | 欢迎→创建→上传→分析→确认→部署完整流程 |
+| 照片校验共享  | Review | 前端       | 单张<=10MB，总<=30MB，最多5张，PRIMARY 唯一 |
 
 ## Sprint 8：Beta 验收
 

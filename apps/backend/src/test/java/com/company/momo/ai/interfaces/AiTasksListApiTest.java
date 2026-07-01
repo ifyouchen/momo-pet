@@ -8,6 +8,7 @@ import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -52,6 +53,43 @@ class AiTasksListApiTest {
     }
 
     @Test
+    void cancel_whenTaskPending_shouldReturnCanceled() throws Exception {
+        String petId = createPet("Cancel Pending Cat");
+        String taskId = createPetDnaTask(petId);
+
+        mockMvc.perform(post("/api/ai/tasks/{taskId}/cancel", taskId))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.status").value("CANCELED"));
+    }
+
+    @Test
+    void cancel_whenTaskSucceeded_shouldReturnNotCancelable() throws Exception {
+        String petId = createPet("Cancel Succeeded Cat");
+        String taskId = createPetDnaTask(petId);
+
+        // 等待 AI 任务完成
+        Thread.sleep(2000);
+
+        mockMvc.perform(post("/api/ai/tasks/{taskId}/cancel", taskId))
+            .andExpect(status().isBadRequest())
+            .andExpect(jsonPath("$.code").value(equalTo("AI_TASK_NOT_CANCELABLE")));
+    }
+
+    @Test
+    void listTasks_whenStatusCanceled_shouldReturnCanceledTasks() throws Exception {
+        String petId = createPet("Cancel List Cat");
+        String taskId = createPetDnaTask(petId);
+
+        mockMvc.perform(post("/api/ai/tasks/{taskId}/cancel", taskId))
+            .andExpect(status().isOk());
+
+        mockMvc.perform(get("/api/ai/tasks").param("status", "CANCELED"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
     void shouldReturnNotFoundForUnknownTask() throws Exception {
         mockMvc.perform(get("/api/ai/tasks/{taskId}", "task_does_not_exist"))
             .andExpect(status().isBadRequest())
@@ -69,7 +107,7 @@ class AiTasksListApiTest {
             .replaceAll(".*\\\"petId\\\":\\\"([^\\\"]+)\\\".*", "$1");
     }
 
-    private void createPetDnaTask(String petId) throws Exception {
+    private String createPetDnaTask(String petId) throws Exception {
         MockMultipartFile photo = new MockMultipartFile(
             "file", "cat.png", "image/png", new byte[]{(byte) 0x89, 'P', 'N', 'G'}
         );
@@ -82,9 +120,13 @@ class AiTasksListApiTest {
             .getContentAsString()
             .replaceAll(".*\\\"assetId\\\":\\\"([^\\\"]+)\\\".*", "$1");
 
-        mockMvc.perform(post("/api/pets/{petId}/dna/generation-tasks", petId)
+        String response = mockMvc.perform(post("/api/pets/{petId}/dna/generation-tasks", petId)
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{\"name\":\"AI List Cat\",\"speciesHint\":\"CAT\",\"primaryPhotoAssetId\":\"" + assetId + "\"}"))
-            .andExpect(status().isOk());
+            .andExpect(status().isOk())
+            .andReturn()
+            .getResponse()
+            .getContentAsString();
+        return response.replaceAll(".*\\\"taskId\\\":\\\"([^\\\"]+)\\\".*", "$1");
     }
 }

@@ -1,3 +1,4 @@
+import { CHAT_MESSAGE_MAX_LENGTH } from '@momo/shared';
 import { LoaderCircle, Send, X } from 'lucide-react';
 import type { FormEvent } from 'react';
 import type { PetChatModel } from '../hooks/use-pet-chat';
@@ -37,7 +38,7 @@ export function CompactChatInput({ chat, onClose }: CompactChatInputProps) {
       <form className="compact-chat-row" onSubmit={handleSubmit}>
         <input
           aria-label="聊天输入"
-          maxLength={300}
+          maxLength={CHAT_MESSAGE_MAX_LENGTH}
           placeholder="今天工作好累"
           value={chat.draft}
           disabled={chat.isSending}

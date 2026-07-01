@@ -27,5 +27,10 @@ public enum AiTaskStatus {
     /**
      * 执行超时。
      */
-    TIMEOUT
+    TIMEOUT,
+
+    /**
+     * 用户取消。
+     */
+    CANCELED
 }

@@ -75,6 +75,7 @@ export function AiTasksListPage() {
             <option value="SUCCEEDED">SUCCEEDED</option>
             <option value="FAILED">FAILED</option>
             <option value="TIMEOUT">TIMEOUT</option>
+            <option value="CANCELED">CANCELED</option>
           </select>
         </label>
         <label>

@@ -8,7 +8,7 @@ import jakarta.validation.constraints.Size;
  */
 public record SendChatMessageRequest(
     @NotBlank
-    @Size(max = 300)
+    @Size(max = 500)
     String content
 ) {
 }

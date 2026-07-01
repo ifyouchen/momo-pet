@@ -16,7 +16,7 @@ import org.springframework.stereotype.Service;
 public class ChatWithPetApplicationService {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ChatWithPetApplicationService.class);
-    private static final int MAX_MESSAGE_LENGTH = 300;
+    private static final int MAX_MESSAGE_LENGTH = 500;
     private static final String FALLBACK_REPLY = "我刚刚走神了，但我还在这里陪你。";
 
     private final ChatConversationPersistenceService persistenceService;
